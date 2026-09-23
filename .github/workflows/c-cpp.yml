@@ -13,8 +13,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
     - name: Criar pasta build e configurar o CMake
       run: cmake -B build -S .
     - name: Compilar os testes
