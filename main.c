@@ -13,7 +13,7 @@
 // e pegar as entradas e saídas
 // mas para isso precisa ter o header bonitinho.
 
-int inicializar_input(int **c, int ***A, int **b, int *m, int *n) {
+int inicializar_input(float **c, float ***A, float **b, int *m, int *n) {
     FILE *input = fopen("./input.txt", "r");
 
     if (input == NULL) {
@@ -47,13 +47,14 @@ int inicializar_input(int **c, int ***A, int **b, int *m, int *n) {
     return 0;
 }
 
-int liberar_memoria(int *c, int **A, int *b, int m) {
+int liberar_memoria(float *c, float **A, float *b, int m) {
     free(c);
     for (int i = 0; i < m; i++) {
         free(A[i]);
     }
     free(A);
     free(b);
+    return 0;
 }
 
 
@@ -66,15 +67,15 @@ int main() {
     // 3° entrada: a matriz A linha a linha
     // 4° entrada: 1 linha para a matriz b^T
 
-    int *c, *b;
-    int **A;
+    float *c, *b;
+    float **A;
     int m, n;
 
     inicializar_input(&c, &A, &b, &m, &n);
 
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            printf("%d ", A[i][j]);
+            printf("%f ", A[i][j]);
         }
         printf("\n");
     }
