@@ -13,7 +13,7 @@
 // e pegar as entradas e saídas
 // mas para isso precisa ter o header bonitinho.
 
-int inicializar_input(float **c, float ***A, float **b, int *m, int *n) {
+int inicializar_input(double **c, double ***A, double **b, int *m, int *n) {
     FILE *input = fopen("./input.txt", "r");
 
     if (input == NULL) {
@@ -22,24 +22,24 @@ int inicializar_input(float **c, float ***A, float **b, int *m, int *n) {
     fscanf(input, "%d %d", m, n);
 
 
-    *c = malloc(*n * sizeof(int));
+    *c = malloc(*n * sizeof(double));
     for (int j = 0; j < *n; j++) {
-        fscanf(input, "%d", &(*c)[j]);
+        fscanf(input, "%lf", &(*c)[j]);
     }
 
 
-    *A = malloc(*m * sizeof(int *));
+    *A = malloc(*m * sizeof(double *));
     for (int i = 0; i < *m; i++) {
-        (*A)[i] = malloc(*n * sizeof(int));
+        (*A)[i] = malloc(*n * sizeof(double));
         for (int j = 0; j < *n; j++) {
-            fscanf(input, "%d", &(*A)[i][j]);
+            fscanf(input, "%lf", &(*A)[i][j]);
         }
     }
 
 
-    *b = malloc(*m * sizeof(int));
+    *b = malloc(*m * sizeof(double));
     for (int i = 0; i < *m; i++) {
-        fscanf(input, "%d", &(*b)[i]);
+        fscanf(input, "%lf", &(*b)[i]);
     }
 
 
@@ -47,7 +47,7 @@ int inicializar_input(float **c, float ***A, float **b, int *m, int *n) {
     return 0;
 }
 
-int liberar_memoria(float *c, float **A, float *b, int m) {
+int liberar_memoria(double *c, double **A, double *b, int m) {
     free(c);
     for (int i = 0; i < m; i++) {
         free(A[i]);
@@ -67,15 +67,15 @@ int main() {
     // 3° entrada: a matriz A linha a linha
     // 4° entrada: 1 linha para a matriz b^T
 
-    float *c, *b;
-    float **A;
+    double *c, *b;
+    double **A;
     int m, n;
 
     inicializar_input(&c, &A, &b, &m, &n);
 
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            printf("%f ", A[i][j]);
+            printf("%lf ", A[i][j]); // just to check, delete later
         }
         printf("\n");
     }
