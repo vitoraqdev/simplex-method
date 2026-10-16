@@ -138,9 +138,9 @@ UTEST_F_SETUP(SimplexFixture) {
     // N = [3 2 0; 2 5 1]
     for (int i = 0; i < utest_fixture->m; i++) {
         // copy the 1st, 2nd and 5th column from A to B
-        utest_fixture->B[i][0] = utest_fixture->A[i][0];
-        utest_fixture->B[i][1] = utest_fixture->A[i][1];
-        utest_fixture->B[i][2] = utest_fixture->A[i][4];
+        utest_fixture->N[i][0] = utest_fixture->A[i][0];
+        utest_fixture->N[i][1] = utest_fixture->A[i][1];
+        utest_fixture->N[i][2] = utest_fixture->A[i][4];
     }
 
     // c_b = [-4 0]^T
