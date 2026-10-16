@@ -41,21 +41,40 @@
 #define EPSILON 1e-12
 
 int gaussian_elimination(double **A, double *x, double *b, int n) {
+    // create copy of matrix A and b
+    // x we want to change so we won't copy
+
+    // calloc initializes as NULL all rows, so safe to clean if something goes wrong during row malloc
+    double **A_copy = calloc(n, sizeof(double *));
+    double *b_copy = malloc(n * sizeof(double));
     double *s = malloc(n*sizeof(double)); // row maximal elements
     int *p = malloc(n*sizeof(int)); // row pointer
-    if((s == NULL)||(p == NULL)){
-            printf("ERROR: Out of Memory\n");
-            free(p);
-            free(s);
-            return -1;
+
+    if((s == NULL) || (p == NULL) || (A_copy == NULL) || (b_copy == NULL)){
+        printf("ERROR: Out of Memory\n");
+        goto cleanup;
     }
 
+    for (int i = 0; i < n; i++) {
+        A_copy[i] = malloc(n * sizeof(double));
+        if (A_copy[i] == NULL) {
+            printf("ERROR: Out of Memory\n");
+            goto cleanup;
+        }
+        b_copy[i] = b[i];  // memcpy
+        for (int j = 0; j < n; j++) {
+            A_copy[i][j] = A[i][j];  // memcpy
+        }
+    }
+
+
+    int status = -1; // assume failure, set to 0 if success
     for (int i = 0; i < n; i++) {
         s[i] = 0;
         p[i] = i;
         for (int j = 0; j < n; j++) {
-            if (s[i] < fabs(A[i][j])) // fabs é absolute pra double
-                s[i] = fabs(A[i][j]);
+            if (s[i] < fabs(A_copy[i][j])) // fabs é absolute pra double
+                s[i] = fabs(A_copy[i][j]);
         }
     }
 
@@ -65,16 +84,14 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
         j = k;
         for (int i = k; i < n; i++) {
             if (fabs(s[p[i]]) > EPSILON ){
-                double r = fabs(A[p[i]][k] / s[p[i]]);
+                double r = fabs(A_copy[p[i]][k] / s[p[i]]);
                 if (r > r_max) {
                     r_max = r;
                     j = i;
                 }
             } else{
                 printf("ERROR: Singular Matrix\n");
-                free(p);
-                free(s);
-                return -1;
+                goto cleanup;
             }
         }
 
@@ -83,18 +100,16 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
         p[j] = temp;
 
         for (int i = k+1; i < n; i++) {
-            if (fabs(A[p[k]][k])> EPSILON){
+            if (fabs(A_copy[p[k]][k])> EPSILON){
                 double multi;
-                multi = A[p[i]][k] / A[p[k]][k];
-                A[p[i]][k] = multi;
+                multi = A_copy[p[i]][k] / A_copy[p[k]][k];
+                A_copy[p[i]][k] = multi;
                 for (int j = k+1; j < n; j++) {
-                    A[p[i]][j] -= multi * A[p[k]][j];
+                    A_copy[p[i]][j] -= multi * A_copy[p[k]][j];
                 }
             } else{
                 printf("ERROR: Singular Matrix\n");
-                free(p);
-                free(s);
-                return -1;
+                goto cleanup;
             }
         }
 
@@ -103,28 +118,34 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
     // Forward elimination
     for (int k = 0; k < n-1; k++) {
         for (int i = k+1; i < n; i++) {
-            b[p[i]] -= A[p[i]][k]*b[p[k]];
+            b_copy[p[i]] -= A_copy[p[i]][k]*b_copy[p[k]];
         }
     }
 
     // Backwards solve
     for (int i = n-1; i >= 0; i--) {
-        double v = b[p[i]];
+        double v = b_copy[p[i]];
         for (int j = i+1; j < n; j++) {
-            v -= A[p[i]][j]*x[j];
+            v -= A_copy[p[i]][j]*x[j];
         }
-        if (fabs(A[p[i]][i])>EPSILON){
-            x[i] = v/A[p[i]][i];
+        if (fabs(A_copy[p[i]][i])>EPSILON){
+            x[i] = v/A_copy[p[i]][i];
         } else{
             printf("ERROR: Singular Matrix\n");
-            free(p);
-            free(s);
-            return -1;
+            goto cleanup;
         }
     }
 
+    status = 0; // success
+
+cleanup:
+    for (int i = 0; i < n; i++) {
+        free(A_copy[i]);
+    }
+    free(A_copy);
+    free(b_copy);
     free(p);
     free(s);
-    return 0;
 
+    return status; // returns whether worked or not
 }
