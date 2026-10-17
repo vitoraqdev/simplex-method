@@ -1,6 +1,7 @@
 #include "test.h"
 
 #include "gaussian_elimination.h"
+#include "simplex.h"
 
 
 // --- TESTES UNITÁRIOS ---
@@ -174,6 +175,12 @@ UTEST_F(SimplexFixture, test_gaussian_elimination) {
     gaussian_elimination(utest_fixture->B, utest_fixture->x, utest_fixture->b, utest_fixture->m);
     ASSERT_NEAR(utest_fixture->x[0], 5, utest_fixture->tolerance);
     ASSERT_NEAR(utest_fixture->x[1], 5, utest_fixture->tolerance);
+}
+
+UTEST_F(SimplexFixture, test_simplex_multiplier_vector) {
+    multiplier_simplex_vector(utest_fixture->B, utest_fixture->lambda, utest_fixture->basic_cost, utest_fixture->m);
+    ASSERT_NEAR(utest_fixture->lambda[0], 0.0, utest_fixture->tolerance);
+    ASSERT_NEAR(utest_fixture->lambda[1], -4.0/3.0, utest_fixture->tolerance);
 }
 
 UTEST_MAIN();
