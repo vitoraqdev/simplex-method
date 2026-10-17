@@ -2,7 +2,6 @@
 
 #include "gaussian_elimination.h"
 
-// todo: add fixture testcases, initializing a struct and using it across all simplex functions?
 
 // --- TESTES UNITÁRIOS ---
 // UTEST(matrix, test_max_from_column) {
@@ -52,66 +51,129 @@
 //
 // }
 
-UTEST(matrix, test_gaussian_elimination) {
-    int n = 3;
+// Fixture is a structure that will be used and initialized for every test that calls it
+// the initialization is in SETUP, it will be an example from wikipedia
+struct SimplexFixture {
+    int m;
+    int n;
+    int N_col_size;
+    double **A;
+    double **B;
+    double **N;
+    double *b;
+    double *c;
+    double *basic_cost;
+    double *lambda;
+    double *x;
+    double *reduced_cost;
+    double *direction;
+    double step_size;
+    double tolerance;
+};
 
-    // Allocate matrix A (3x3)
-    double **A = malloc(n * sizeof(double *));
-    for (int i = 0; i < n; i++) {
-        A[i] = (double *)malloc(n * sizeof(double));
+// Setup tests
+UTEST_F_SETUP(SimplexFixture) {
+    utest_fixture->m = 2;
+    utest_fixture->n = 5;
+
+    // Allocate matrix A (2x5) and B (2x2)
+    utest_fixture->A = malloc(utest_fixture->m * sizeof(double *));
+    utest_fixture->B = malloc(utest_fixture->m * sizeof(double *));
+    for (int i = 0; i < utest_fixture->m; i++) {
+        utest_fixture->A[i] = malloc(utest_fixture->n * sizeof(double));
+        utest_fixture->B[i] = malloc(utest_fixture->m * sizeof(double));
     }
 
-    // Allocate vectors b and x
-    double *b = malloc(n * sizeof(double));
-    double *x = malloc(n * sizeof(double));
+    // Allocate matrix N (2x3)
+    utest_fixture->N_col_size = utest_fixture->n - utest_fixture->m;
+    utest_fixture->N = malloc(utest_fixture->m * sizeof(double *));
+    for (int i = 0; i < utest_fixture->m; i++) {
+        utest_fixture->N[i] = malloc(utest_fixture->N_col_size * sizeof(double));
+    }
 
-    // Define a test system:
-    // 2x + 1y + 1z = 4   -> x = [1, 1, 1]
-    // 4x + 3y + 3z = 10
-    // 8x + 7y + 9z = 24
-    double initial_A[3][3] = {
-        {2.0f, 1.0f, 1.0f},
-        {4.0f, 3.0f, 3.0f},
-        {8.0f, 7.0f, 9.0f}
+    // Allocate vectors
+    utest_fixture->b = malloc(utest_fixture->m * sizeof(double));
+    utest_fixture->c = malloc(utest_fixture->n * sizeof(double));
+    utest_fixture->basic_cost = malloc(utest_fixture->N_col_size * sizeof(double));
+    utest_fixture->lambda = malloc(utest_fixture->N_col_size * sizeof(double));
+    utest_fixture->x = malloc(utest_fixture->n * sizeof(double));
+    utest_fixture->reduced_cost = malloc(utest_fixture->N_col_size * sizeof(double));
+    utest_fixture->direction = malloc(utest_fixture->m * sizeof(double));
+
+
+    // Using wikipedia https://en.wikipedia.org/wiki/Revised_simplex_method numerical example
+    // A = [3 2 1 1 0;
+    //      2 5 3 0 1]
+
+    double initial_A[2][5] = {
+        {3.0f, 2.0f, 1.0f, 1.0f, 0.0f},
+        {2.0f, 5.0f, 3.0f, 0.0f, 1.0f}
     };
-    double initial_b[3] = {4.0f, 10.0f, 24.0f};
 
-    for (int i = 0; i < n; i++) {
-        b[i] = initial_b[i];
-        x[i] = 0.0f;
-        for (int j = 0; j < n; j++) {
-            A[i][j] = initial_A[i][j];
+    for (int i = 0; i < utest_fixture->m; i++) {
+        for (int j = 0; j < utest_fixture->n; j++) {
+            (utest_fixture->A)[i][j] = initial_A[i][j];
         }
     }
 
-    // Run solver
-    int status = gaussian_elimination(A, x, b, n);
-    if (status != 0) {
-        // Cleanup memory
-        for (int i = 0; i < n; i++) {
-            free(A[i]);
+    // b = [10 15]^T
+    utest_fixture->b[0] = 10;
+    utest_fixture->b[1] = 15;
+
+    // c = [-2 -3 -4 0 0]^T
+    utest_fixture->c[0] = -2;
+    utest_fixture->c[1] = -3;
+    utest_fixture->c[2] = -4;
+    utest_fixture->c[3] = 0;
+    utest_fixture->c[4] = 0;
+
+    // B = [1 1; 3 0]
+    for (int i = 0; i < utest_fixture->m; i++) {
+        for (int j = 0; j < utest_fixture->m; j++) {
+            // copy the 3th and 4th column from A to B
+            utest_fixture->B[i][j] = utest_fixture->A[i][j+2];
         }
-        free(A);
-        free(b);
-        free(x);
-        ASSERT_EQ(status, 0);
     }
 
-    // Verify expected solution: x should be roughly [1.0, 1.0, 1.0]
-    double tolerance = 1e-5f;
-    printf("Resulting x: [%f, %f, %f]\n", x[0], x[1], x[2]);
-
-    for (int i = 0; i < n; i++) {
-        ASSERT_NEAR(x[i], 1.0, tolerance);
+    // N = [3 2 0; 2 5 1]
+    for (int i = 0; i < utest_fixture->m; i++) {
+        // copy the 1st, 2nd and 5th column from A to B
+        utest_fixture->N[i][0] = utest_fixture->A[i][0];
+        utest_fixture->N[i][1] = utest_fixture->A[i][1];
+        utest_fixture->N[i][2] = utest_fixture->A[i][4];
     }
 
-    // Cleanup memory
-    for (int i = 0; i < n; i++) {
-        free(A[i]);
+    // c_b = [-4 0]^T
+    utest_fixture->basic_cost[0] = -4.0;
+    utest_fixture->basic_cost[1] = 0.0;
+}
+
+
+
+// Cleanup memory, it calls everytime it exits a test function, we clear all variables to not leak memory
+UTEST_F_TEARDOWN(SimplexFixture) {
+    for (int i = 0; i < utest_fixture->m; i++) {
+        free(utest_fixture->A[i]);
+        free(utest_fixture->B[i]);
+        free(utest_fixture->N[i]);
     }
-    free(A);
-    free(b);
-    free(x);
+
+    free(utest_fixture->A);
+    free(utest_fixture->B);
+    free(utest_fixture->N);
+    free(utest_fixture->b);
+    free(utest_fixture->c);
+    free(utest_fixture->basic_cost);
+    free(utest_fixture->lambda);
+    free(utest_fixture->x);
+    free(utest_fixture->reduced_cost);
+    free(utest_fixture->direction);
+}
+
+UTEST_F(SimplexFixture, test_gaussian_elimination) {
+    gaussian_elimination(utest_fixture->B, utest_fixture->x, utest_fixture->b, utest_fixture->m);
+    ASSERT_NEAR(utest_fixture->x[0], 5, utest_fixture->tolerance);
+    ASSERT_NEAR(utest_fixture->x[1], 5, utest_fixture->tolerance);
 }
 
 UTEST_MAIN();
