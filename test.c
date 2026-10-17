@@ -1,6 +1,7 @@
 #include "test.h"
 
 #include "gaussian_elimination.h"
+#include "simplex.h"
 
 
 // --- TESTES UNITÁRIOS ---
@@ -63,6 +64,7 @@ struct SimplexFixture {
     double *b;
     double *c;
     double *basic_cost;
+    double *normal_cost;
     double *lambda;
     double *x;
     double *reduced_cost;
@@ -75,6 +77,7 @@ struct SimplexFixture {
 UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->m = 2;
     utest_fixture->n = 5;
+    utest_fixture->tolerance = 1e-6;
 
     // Allocate matrix A (2x5) and B (2x2)
     utest_fixture->A = malloc(utest_fixture->m * sizeof(double *));
@@ -94,7 +97,8 @@ UTEST_F_SETUP(SimplexFixture) {
     // Allocate vectors
     utest_fixture->b = malloc(utest_fixture->m * sizeof(double));
     utest_fixture->c = malloc(utest_fixture->n * sizeof(double));
-    utest_fixture->basic_cost = malloc(utest_fixture->N_col_size * sizeof(double));
+    utest_fixture->basic_cost = malloc(utest_fixture->m * sizeof(double));
+    utest_fixture->normal_cost = malloc(utest_fixture->N_col_size * sizeof(double));
     utest_fixture->lambda = malloc(utest_fixture->N_col_size * sizeof(double));
     utest_fixture->x = malloc(utest_fixture->n * sizeof(double));
     utest_fixture->reduced_cost = malloc(utest_fixture->N_col_size * sizeof(double));
@@ -146,6 +150,12 @@ UTEST_F_SETUP(SimplexFixture) {
     // c_b = [-4 0]^T
     utest_fixture->basic_cost[0] = -4.0;
     utest_fixture->basic_cost[1] = 0.0;
+
+    // c_n = [-2 -3 0]^T
+    utest_fixture->normal_cost[0] = -2.0;
+    utest_fixture->normal_cost[1] = -3.0;
+    utest_fixture->normal_cost[2] = 0.0;
+
 }
 
 
@@ -174,6 +184,21 @@ UTEST_F(SimplexFixture, test_gaussian_elimination) {
     gaussian_elimination(utest_fixture->B, utest_fixture->x, utest_fixture->b, utest_fixture->m);
     ASSERT_NEAR(utest_fixture->x[0], 5, utest_fixture->tolerance);
     ASSERT_NEAR(utest_fixture->x[1], 5, utest_fixture->tolerance);
+}
+
+UTEST_F(SimplexFixture, test_simplex_multiplier_vector) {
+    multiplier_simplex_vector(utest_fixture->B, utest_fixture->lambda, utest_fixture->basic_cost, utest_fixture->m);
+    ASSERT_NEAR(utest_fixture->lambda[0], 0.0, utest_fixture->tolerance);
+    ASSERT_NEAR(utest_fixture->lambda[1], -4.0/3.0, utest_fixture->tolerance);
+}
+
+UTEST_F(SimplexFixture, test_reduced_cost) {
+    multiplier_simplex_vector(utest_fixture->B, utest_fixture->lambda, utest_fixture->basic_cost, utest_fixture->m);
+    reduced_cost(utest_fixture->normal_cost, utest_fixture->lambda, utest_fixture->N, utest_fixture->m,
+        utest_fixture->n, utest_fixture->reduced_cost);
+    ASSERT_NEAR(utest_fixture->reduced_cost[0], 2.0/3.0, utest_fixture->tolerance);
+    ASSERT_NEAR(utest_fixture->reduced_cost[1], 11.0/3.0, utest_fixture->tolerance);
+    ASSERT_NEAR(utest_fixture->reduced_cost[2], 4.0/3.0, utest_fixture->tolerance);
 }
 
 UTEST_MAIN();
