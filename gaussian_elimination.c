@@ -1,0 +1,151 @@
+//
+// Created by vitor on 11/10/2026.
+// Modified by Thierry Scarazzatti Adame on 16/10/2026.
+//
+
+#include "gaussian_elimination.h"
+
+#include <stdlib.h>
+#include <math.h>
+#include <stdio.h>
+
+// can delete, not using for new gaussian elimination
+// int max_from_column(double **A, int m, int n, int k) {
+//     double highest = A[0][k];
+//     int index = 0;
+//
+//     for (int i = 1; i < m; i++) {
+//         if (A[i][k] > highest) {
+//             highest = A[i][k];
+//             index = i;
+//         }
+//     }
+//
+//     return index;
+// }
+
+// can delete, not using for new gaussian elimination
+// void swap_rows(double **A, int m, int n, int h, int i) {
+//     int size_of_bytes_to_copy = n*sizeof(double);
+//     int *aux_row_vector = malloc(size_of_bytes_to_copy);
+//
+//     memcpy(aux_row_vector, A[h], size_of_bytes_to_copy);
+//     memcpy(A[h], A[i], size_of_bytes_to_copy);
+//     memcpy(A[i], aux_row_vector, size_of_bytes_to_copy);
+// }
+
+// work only for matrix A nxn, since otherwise it'd have variables, which we don't want
+// also, from revised simplex, B is nxn and also a basis, so is no problem and always will have solution.
+// https://math.gordon.edu/courses/mat342/handouts/gauss.pdf
+
+#define EPSILON 1e-12
+
+int gaussian_elimination(double **A, double *x, double *b, int n) {
+    // create copy of matrix A and b
+    // x we want to change so we won't copy
+
+    // calloc initializes as NULL all rows, so safe to clean if something goes wrong during row malloc
+    double **A_copy = calloc(n, sizeof(double *));
+    double *b_copy = malloc(n * sizeof(double));
+    double *s = malloc(n*sizeof(double)); // row maximal elements
+    int *p = malloc(n*sizeof(int)); // row pointer
+
+    if((s == NULL) || (p == NULL) || (A_copy == NULL) || (b_copy == NULL)){
+        printf("ERROR: Out of Memory\n");
+        goto cleanup;
+    }
+
+    for (int i = 0; i < n; i++) {
+        A_copy[i] = malloc(n * sizeof(double));
+        if (A_copy[i] == NULL) {
+            printf("ERROR: Out of Memory\n");
+            goto cleanup;
+        }
+        b_copy[i] = b[i];  // memcpy
+        for (int j = 0; j < n; j++) {
+            A_copy[i][j] = A[i][j];  // memcpy
+        }
+    }
+
+
+    int status = -1; // assume failure, set to 0 if success
+    for (int i = 0; i < n; i++) {
+        s[i] = 0;
+        p[i] = i;
+        for (int j = 0; j < n; j++) {
+            if (s[i] < fabs(A_copy[i][j])) // fabs é absolute pra double
+                s[i] = fabs(A_copy[i][j]);
+        }
+    }
+
+    int j;
+    for (int k = 0; k < n-1; k++) {
+        double r_max = 0;
+        j = k;
+        for (int i = k; i < n; i++) {
+            if (fabs(s[p[i]]) > EPSILON ){
+                double r = fabs(A_copy[p[i]][k] / s[p[i]]);
+                if (r > r_max) {
+                    r_max = r;
+                    j = i;
+                }
+            } else{
+                printf("ERROR: Singular Matrix\n");
+                goto cleanup;
+            }
+        }
+
+        int temp = p[k];
+        p[k] = p[j];
+        p[j] = temp;
+
+        for (int i = k+1; i < n; i++) {
+            if (fabs(A_copy[p[k]][k])> EPSILON){
+                double multi;
+                multi = A_copy[p[i]][k] / A_copy[p[k]][k];
+                A_copy[p[i]][k] = multi;
+                for (int j = k+1; j < n; j++) {
+                    A_copy[p[i]][j] -= multi * A_copy[p[k]][j];
+                }
+            } else{
+                printf("ERROR: Singular Matrix\n");
+                goto cleanup;
+            }
+        }
+
+    }
+
+    // Forward elimination
+    for (int k = 0; k < n-1; k++) {
+        for (int i = k+1; i < n; i++) {
+            b_copy[p[i]] -= A_copy[p[i]][k]*b_copy[p[k]];
+        }
+    }
+
+    // Backwards solve
+    for (int i = n-1; i >= 0; i--) {
+        double v = b_copy[p[i]];
+        for (int j = i+1; j < n; j++) {
+            v -= A_copy[p[i]][j]*x[j];
+        }
+        if (fabs(A_copy[p[i]][i])>EPSILON){
+            x[i] = v/A_copy[p[i]][i];
+        } else{
+            printf("ERROR: Singular Matrix\n");
+            goto cleanup;
+        }
+    }
+
+    status = 0; // success
+
+cleanup:
+    for (int i = 0; i < n; i++) {
+        free(A_copy[i]);
+    }
+    free(A_copy);
+    free(b_copy);
+    free(p);
+    free(s);
+
+    return status; // returns whether worked or not
+}
