@@ -24,6 +24,9 @@ int multiplier_simplex_vector(double **base, double *lambda, double *base_cost, 
     transpose(base, base_transpose, tam);
 
     gaussian_elimination(base_transpose, lambda, base_cost, tam);
-
+for (int i = 0; i < tam; i++) {
+        free(base_transpose[i]);
+    }
+    free(base_transpose);
     return 0;
 }
