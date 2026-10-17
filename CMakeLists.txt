@@ -12,4 +12,6 @@ add_executable(SimplexTests
         test.c
         test.h
         simplex.c
-        simplex.h)
+        simplex.h
+        gaussian_elimination.c
+        gaussian_elimination.h)
