@@ -32,7 +32,7 @@ for (int i = 0; i < tam; i++) {
 }
 
 // last variable is the one we're defining
-int reduced_cost(double *normal_cost, double *lambda, double **N, int m, int n, double *reduced_cost) {
+int find_reduced_cost(double *normal_cost, double *lambda, double **N, int m, int n, double *reduced_cost) {
     for (int i = 0; i < n-m; i++) {
         // reduced_cost_j = c_N_j - lambda^T * a^N_j
         double dot_product = 0;
