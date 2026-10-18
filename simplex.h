@@ -21,6 +21,9 @@ void generic_swap(void *a, void *b, size_t size);
 
 int switch_basic_and_normal_column(double **B, double **N, int base_col_index, int normal_col_index, int rows);
 
+int simplex_step(double **B, double **N, double *b, double *basic_cost, double *normal_cost, int *basic_index,
+    int *normal_index, int rows, int cols, int *iteration);
+
 int reduced_cost(double *normal_cost, double *lambda, double **N, int m, int n, double *reduced_cost);
 
 #endif //SIMPLEX_METHOD_SIMPLEX_H

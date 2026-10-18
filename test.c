@@ -231,4 +231,12 @@ UTEST_F(SimplexFixture, test_find_step_size) {
     EXPECT_NEAR(utest_fixture->step_size, result_step_size, utest_fixture->tolerance);
 }
 
+
+UTEST_F(SimplexFixture, test_simplex_step) {
+    int STATUS = simplex_step(utest_fixture->B, utest_fixture->N, utest_fixture->b, utest_fixture->basic_cost,
+        utest_fixture->normal_cost, utest_fixture->basic_index, utest_fixture->normal_index, utest_fixture->m,
+        utest_fixture->n, 0);
+    ASSERT_EQ(1, STATUS); // optimality hard coded
+}
+
 UTEST_MAIN();
