@@ -187,12 +187,6 @@ UTEST_F(SimplexFixture, test_simplex_multiplier_vector) {
 }
 
 UTEST_F(SimplexFixture, test_reduced_cost) {
-    multiplier_simplex_vector(utest_fixture->B, utest_fixture->lambda, utest_fixture->basic_cost, utest_fixture->m);
-    reduced_cost(utest_fixture->normal_cost, utest_fixture->lambda, utest_fixture->N, utest_fixture->m,
-        utest_fixture->n, utest_fixture->reduced_cost);
-    ASSERT_NEAR(utest_fixture->reduced_cost[0], 2.0/3.0, utest_fixture->tolerance);
-    ASSERT_NEAR(utest_fixture->reduced_cost[1], 11.0/3.0, utest_fixture->tolerance);
-    ASSERT_NEAR(utest_fixture->reduced_cost[2], 4.0/3.0, utest_fixture->tolerance);
     double *result_reduced_cost = malloc(utest_fixture->N_col_size*sizeof(double));
     find_reduced_cost(utest_fixture->normal_cost, utest_fixture->lambda, utest_fixture->N, utest_fixture->m,
         utest_fixture->n, result_reduced_cost);
