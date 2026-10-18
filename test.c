@@ -3,54 +3,8 @@
 #include "gaussian_elimination.h"
 #include "simplex.h"
 
-
+// TODO: fazer testes unitarios das funções mais básicas, sem usar necessariamente o fixture
 // --- TESTES UNITÁRIOS ---
-// UTEST(matrix, test_max_from_column) {
-//     double row0[5] = {3, 2, 1, 1, 0};
-//     double row1[5] = {2, 5, 3, 0, 1};
-//
-//     double *A[2] = {row0, row1};
-//
-//     ASSERT_EQ(0, max_from_column(A, 2, 5, 0));
-//     ASSERT_EQ(1, max_from_column(A, 2, 5, 1));
-//     ASSERT_EQ(1, max_from_column(A, 2, 5, 2));
-//     ASSERT_EQ(0, max_from_column(A, 2, 5, 3));
-//     ASSERT_EQ(1, max_from_column(A, 2, 5, 4));
-// }
-
-// UTEST (matrix, test_row_exchange) {
-//     int rows = 2;
-//     int cols = 5;
-//
-//     double row0[5] = {3, 2, 1, 1, 0};
-//     double row1[5] = {2, 5, 3, 0, 1};
-//
-//     double **A = malloc(rows*sizeof(double *));
-//     A[0] = malloc(cols*sizeof(double));
-//     A[1] = malloc(cols*sizeof(double));
-//     memcpy(A[0], row0, sizeof(row0));
-//     memcpy(A[1], row1, sizeof(row1));
-//
-//     double **B = malloc(rows*sizeof(double *));
-//     B[0] = malloc(cols*sizeof(double));
-//     B[1] = malloc(cols*sizeof(double));
-//     memcpy(B[0], A[0], sizeof(row0));
-//     memcpy(B[1], A[1], sizeof(row1));
-//
-//     swap_rows(A, 2, 5, 0, 1);
-//
-//     for (int i = 0; i < 2; i++) {
-//         for (int j = 0; j < 5; j++) {
-//             ASSERT_EQ(B[i][j], A[1-i][j]);
-//         }
-//         free(A[1-i]);
-//         free(B[i]);
-//     }
-//
-//     free(A);
-//     free(B);
-//
-// }
 
 // Fixture is a structure that will be used and initialized for every test that calls it
 // the initialization is in SETUP, it will be an example from wikipedia
@@ -66,17 +20,22 @@ struct SimplexFixture {
     double *basic_cost;
     double *normal_cost;
     double *lambda;
-    double *x;
+    double *current_basic_x;
     double *reduced_cost;
     double *direction;
+    int *basic_index;
+    int *normal_index;
     double step_size;
     double tolerance;
 };
 
 // Setup tests
+// Our Oracle, all known results are here already, on each test function we create a new variable
+// and test against our Oracle.
 UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->m = 2;
     utest_fixture->n = 5;
+    utest_fixture->step_size = 15.0/7.0;
     utest_fixture->tolerance = 1e-6;
 
     // Allocate matrix A (2x5) and B (2x2)
@@ -100,9 +59,11 @@ UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->basic_cost = malloc(utest_fixture->m * sizeof(double));
     utest_fixture->normal_cost = malloc(utest_fixture->N_col_size * sizeof(double));
     utest_fixture->lambda = malloc(utest_fixture->N_col_size * sizeof(double));
-    utest_fixture->x = malloc(utest_fixture->n * sizeof(double));
+    utest_fixture->current_basic_x = malloc(utest_fixture->m * sizeof(double));
     utest_fixture->reduced_cost = malloc(utest_fixture->N_col_size * sizeof(double));
     utest_fixture->direction = malloc(utest_fixture->m * sizeof(double));
+    utest_fixture->basic_index = malloc(utest_fixture->m * sizeof(double));
+    utest_fixture->normal_index = malloc(utest_fixture->N_col_size * sizeof(double));
 
 
     // Using wikipedia https://en.wikipedia.org/wiki/Revised_simplex_method numerical example
@@ -156,6 +117,32 @@ UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->normal_cost[1] = -3.0;
     utest_fixture->normal_cost[2] = 0.0;
 
+    // x_B = [5; 5]
+    utest_fixture->current_basic_x[0] = 5;
+    utest_fixture->current_basic_x[1] = 5;
+
+    // lambda = [0 -4/3]^T
+    utest_fixture->lambda[0] = 0;
+    utest_fixture->lambda[1] = -4.0/3.0;
+
+    // reduced cost = [2/3 11/3 4/3]^T
+    utest_fixture->reduced_cost[0] = 2.0/3.0;
+    utest_fixture->reduced_cost[1] = 11.0/3.0;
+    utest_fixture->reduced_cost[2] = 4.0/3.0;
+
+    // direction = [2/3 7/3]^T
+    utest_fixture->direction[0] = 2.0/3.0;
+    utest_fixture->direction[1] = 7.0/3.0;
+
+    // basic_index = [3 4]^T
+    utest_fixture->basic_index[0] = 3;
+    utest_fixture->basic_index[1] = 4;
+
+    // normal_index = [1 2 5]^T
+    utest_fixture->normal_index[0] = 1;
+    utest_fixture->normal_index[1] = 2;
+    utest_fixture->normal_index[2] = 5;
+
 }
 
 
@@ -174,22 +161,29 @@ UTEST_F_TEARDOWN(SimplexFixture) {
     free(utest_fixture->b);
     free(utest_fixture->c);
     free(utest_fixture->basic_cost);
+    free(utest_fixture->normal_cost);
     free(utest_fixture->lambda);
-    free(utest_fixture->x);
+    free(utest_fixture->current_basic_x);
     free(utest_fixture->reduced_cost);
     free(utest_fixture->direction);
+    free(utest_fixture->basic_index);
+    free(utest_fixture->normal_index);
 }
 
 UTEST_F(SimplexFixture, test_gaussian_elimination) {
-    gaussian_elimination(utest_fixture->B, utest_fixture->x, utest_fixture->b, utest_fixture->m);
-    ASSERT_NEAR(utest_fixture->x[0], 5, utest_fixture->tolerance);
-    ASSERT_NEAR(utest_fixture->x[1], 5, utest_fixture->tolerance);
+    double *result_current_basic_x = malloc(utest_fixture->m*sizeof(double));
+    gaussian_elimination(utest_fixture->B, result_current_basic_x, utest_fixture->b, utest_fixture->m);
+    EXPECT_NEAR(utest_fixture->current_basic_x[0], result_current_basic_x[0], utest_fixture->tolerance);
+    EXPECT_NEAR(utest_fixture->current_basic_x[1], result_current_basic_x[1], utest_fixture->tolerance);
+    free(result_current_basic_x);
 }
 
 UTEST_F(SimplexFixture, test_simplex_multiplier_vector) {
-    multiplier_simplex_vector(utest_fixture->B, utest_fixture->lambda, utest_fixture->basic_cost, utest_fixture->m);
-    ASSERT_NEAR(utest_fixture->lambda[0], 0.0, utest_fixture->tolerance);
-    ASSERT_NEAR(utest_fixture->lambda[1], -4.0/3.0, utest_fixture->tolerance);
+    double *result_lambda = malloc(utest_fixture->m*sizeof(double));
+    multiplier_simplex_vector(utest_fixture->B, result_lambda, utest_fixture->basic_cost, utest_fixture->m);
+    EXPECT_NEAR(utest_fixture->lambda[0], result_lambda[0], utest_fixture->tolerance);
+    EXPECT_NEAR(utest_fixture->lambda[1], result_lambda[1], utest_fixture->tolerance);
+    free(result_lambda);
 }
 
 UTEST_F(SimplexFixture, test_reduced_cost) {
@@ -199,6 +193,13 @@ UTEST_F(SimplexFixture, test_reduced_cost) {
     ASSERT_NEAR(utest_fixture->reduced_cost[0], 2.0/3.0, utest_fixture->tolerance);
     ASSERT_NEAR(utest_fixture->reduced_cost[1], 11.0/3.0, utest_fixture->tolerance);
     ASSERT_NEAR(utest_fixture->reduced_cost[2], 4.0/3.0, utest_fixture->tolerance);
+    double *result_reduced_cost = malloc(utest_fixture->N_col_size*sizeof(double));
+    find_reduced_cost(utest_fixture->normal_cost, utest_fixture->lambda, utest_fixture->N, utest_fixture->m,
+        utest_fixture->n, result_reduced_cost);
+    EXPECT_NEAR(utest_fixture->reduced_cost[0], result_reduced_cost[0], utest_fixture->tolerance);
+    EXPECT_NEAR(utest_fixture->reduced_cost[1], result_reduced_cost[1], utest_fixture->tolerance);
+    EXPECT_NEAR(utest_fixture->reduced_cost[2], result_reduced_cost[2], utest_fixture->tolerance);
+    free(result_reduced_cost);
 }
 
 UTEST_MAIN();
