@@ -6,7 +6,9 @@ set(CMAKE_C_STANDARD 11)
 add_executable(SimplexMethod
         main.c
         simplex.c
-        simplex.h)
+        simplex.h
+        gaussian_elimination.c
+        gaussian_elimination.h)
 
 add_executable(SimplexTests
         test.c
