@@ -123,7 +123,7 @@ int main() {
     double **A;
     int m, n;
     int max_iteration = 100;
-    double tolerance = 1e-6;
+    double EPSILON = 1e-6;
 
     /*
     INPUT READING
@@ -176,7 +176,7 @@ int main() {
     for (int i = 0; i < m; i++) {
         total_cost += basic_cost_phase1[i]*current_basic_x[i];
     }
-    if (fabs(total_cost) > tolerance) {
+    if (fabs(total_cost) > EPSILON) {
         printf("ERROR: First phase failed. Total cost %.6lf != 0", total_cost);
         goto cleanup;
     }
