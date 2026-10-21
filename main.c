@@ -5,14 +5,6 @@
 #include "gaussian_elimination.h"
 #include "simplex.h"
 
-// TODO: escrever headers, código e testes de
-// 1. resolvedor de sistema Ax=b
-// 2. cálculo de custos relativos
-// 3. teste de otimalidade
-// 4. direção simplex
-// 5. tamanho do passo
-// 6. nova partição básica
-
 /*
 Reads the linear optimization problem of the kind:
 
