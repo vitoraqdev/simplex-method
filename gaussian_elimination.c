@@ -1,54 +1,30 @@
-//
-// Created by vitor on 11/10/2026.
-// Modified by Thierry Scarazzatti Adame on 16/10/2026.
-//
-
 #include "gaussian_elimination.h"
 
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
 
-// can delete, not using for new gaussian elimination
-// int max_from_column(double **A, int m, int n, int k) {
-//     double highest = A[0][k];
-//     int index = 0;
-//
-//     for (int i = 1; i < m; i++) {
-//         if (A[i][k] > highest) {
-//             highest = A[i][k];
-//             index = i;
-//         }
-//     }
-//
-//     return index;
-// }
+/*
+Does the gaussian elimination method to solve the system of equations Ax = b, where A is a n x n matrix and b is a vector.
+Howewever, the basis matrix is always square, so we can assume that A is always square and b is always a vector of size n.
+The solution will be stored in x, which is also a vector of size n.
 
-// can delete, not using for new gaussian elimination
-// void swap_rows(double **A, int m, int n, int h, int i) {
-//     int size_of_bytes_to_copy = n*sizeof(double);
-//     int *aux_row_vector = malloc(size_of_bytes_to_copy);
-//
-//     memcpy(aux_row_vector, A[h], size_of_bytes_to_copy);
-//     memcpy(A[h], A[i], size_of_bytes_to_copy);
-//     memcpy(A[i], aux_row_vector, size_of_bytes_to_copy);
-// }
+Algorithm pseudocode source: https://math.gordon.edu/courses/mat342/handouts/gauss.pdf
+*/
 
-// work only for matrix A nxn, since otherwise it'd have variables, which we don't want
-// also, from revised simplex, B is nxn and also a basis, so is no problem and always will have solution.
-// https://math.gordon.edu/courses/mat342/handouts/gauss.pdf
-
-#define EPSILON 1e-12
+#define EPSILON 1e-6
 
 int gaussian_elimination(double **A, double *x, double *b, int n) {
-    // create copy of matrix A and b
-    // x we want to change so we won't copy
-
-    // calloc initializes as NULL all rows, so safe to clean if something goes wrong during row malloc
+    /*
+    Copies matrices A and b, so we don't change the original ones.
+    x is not copied, because we want to change it and return the solution.
+    
+    malloc initializes all rows as NULL, making it safe to clean if something goes wrong during the rows malloc
+    */
     double **A_copy = calloc(n, sizeof(double *));
     double *b_copy = malloc(n * sizeof(double));
-    double *s = malloc(n*sizeof(double)); // row maximal elements
-    int *p = malloc(n*sizeof(int)); // row pointer
+    double *s = malloc(n*sizeof(double)); //Row maximal elements
+    int *p = malloc(n*sizeof(int)); //Row pointer
 
     if((s == NULL) || (p == NULL) || (A_copy == NULL) || (b_copy == NULL)){
         printf("ERROR: Out of Memory\n");
@@ -61,19 +37,21 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
             printf("ERROR: Out of Memory\n");
             goto cleanup;
         }
-        b_copy[i] = b[i];  // memcpy
+        b_copy[i] = b[i];
         for (int j = 0; j < n; j++) {
-            A_copy[i][j] = A[i][j];  // memcpy
+            A_copy[i][j] = A[i][j];
         }
     }
 
-
-    int status = -1; // assume failure, set to 0 if success
+    /*
+    We assume failure, and set status to 0 if the algorithm succeeds. This way, we can use goto cleanup to free memory and return failure if something goes wrong.
+    */
+    int status = -1;
     for (int i = 0; i < n; i++) {
         s[i] = 0;
         p[i] = i;
         for (int j = 0; j < n; j++) {
-            if (s[i] < fabs(A_copy[i][j])) // fabs é absolute pra double
+            if (s[i] < fabs(A_copy[i][j]))
                 s[i] = fabs(A_copy[i][j]);
         }
     }
@@ -99,8 +77,11 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
         p[k] = p[j];
         p[j] = temp;
 
+        /*
+        Realizes the elimination by subtracting the k-th row from the i-th row in A, multiplied by the factor A[i][k]/A[k][k]
+        */
         for (int i = k+1; i < n; i++) {
-            if (fabs(A_copy[p[k]][k])> EPSILON){
+            if (fabs(A_copy[p[k]][k]) > EPSILON){
                 double multi;
                 multi = A_copy[p[i]][k] / A_copy[p[k]][k];
                 A_copy[p[i]][k] = multi;
@@ -115,14 +96,18 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
 
     }
 
-    // Forward elimination
+    /*
+    Realizes the elimination by subtracting the k-th row from the i-th row in b, multiplied by the factor A[i][k]/A[k][k]
+    */
     for (int k = 0; k < n-1; k++) {
         for (int i = k+1; i < n; i++) {
             b_copy[p[i]] -= A_copy[p[i]][k]*b_copy[p[k]];
         }
     }
 
-    // Backwards solve
+    /*
+    Finds the solution by back substitution, starting from the last row and going up to the first row.
+    */
     for (int i = n-1; i >= 0; i--) {
         double v = b_copy[p[i]];
         for (int j = i+1; j < n; j++) {
@@ -136,7 +121,7 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
         }
     }
 
-    status = 0; // success
+    status = 0;
 
 cleanup:
     for (int i = 0; i < n; i++) {
@@ -147,5 +132,5 @@ cleanup:
     free(p);
     free(s);
 
-    return status; // returns whether worked or not
+    return status;
 }
