@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "input.h"
+#include "phase1.h"
 #include "gaussian_elimination.h"
 #include "simplex.h"
 
@@ -21,102 +23,6 @@ A_m1 A_m2 ... A_mn
 b_1 b_2 ... b_m
 */
 
-int initialize_input(double **c, double ***A, double **b, int *m, int *n) {
-    FILE *input = fopen("./input.txt", "r");
-
-    if (input == NULL) {
-        perror("Error reading input.txt");
-    }
-    fscanf(input, "%d %d", m, n);
-
-
-    *c = malloc(*n * sizeof(double));
-    for (int j = 0; j < *n; j++) {
-        fscanf(input, "%lf", &(*c)[j]);
-    }
-
-
-    *A = malloc(*m * sizeof(double *));
-    for (int i = 0; i < *m; i++) {
-        (*A)[i] = malloc(*n * sizeof(double));
-        for (int j = 0; j < *n; j++) {
-            fscanf(input, "%lf", &(*A)[i][j]);
-        }
-    }
-
-
-    *b = malloc(*m * sizeof(double));
-    for (int i = 0; i < *m; i++) {
-        fscanf(input, "%lf", &(*b)[i]);
-    }
-
-
-    fclose(input);
-    return 0;
-}
-
-/*
-Chooses the indices of the basic and non-basic variables for phase I of the simplex method.
-The slack variables are added to the basic set, while the original variables are added to the non-basic set.
-*/
-void initialize_phase1(int m, int n, int *indice_B, int *indice_N) {
-    // As variáveis originais (0 até n-1) começam fora da base
-    for(int i = 0; i < n; i++){
-        indice_N[i] = i;
-    }
-    for(int i = 0; i < m; i++) {
-        indice_B[i] = n + i;
-    }
-}
-
-/*
-Builds the matrices B and N for phase I of the simplex method.
-B is the matrix of basic variables (slack variables) (identity matrix)
-N is the matrix of non-basic variables (original variables) (A)
-*/
-int initialization_phase1(double **B_phase1, double **N_phase1, double **A, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        B_phase1[i] = malloc(rows*sizeof(double));
-        N_phase1[i] = malloc(cols*sizeof(double));
-    }
-
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < rows; j++) {
-            if (i == j)
-                B_phase1[i][j] = 1; // identity
-            else
-                B_phase1[i][j] = 0;
-        }
-
-        for (int j = 0; j < cols; j++) {
-            N_phase1[i][j] = A[i][j]; // copy A to N
-        }
-    }
-
-}
-
-
-
-int is_in_index(int *index, int length, int variable) {
-    int is_inside = 0;
-    for (int i = 0; i < length; i++) {
-        if (index[i] == variable)
-            is_inside = 1;
-    }
-
-    return is_inside;
-}
-
-int inverse_index(int *index, int length, int variable) {
-    if (!is_in_index(index, length, variable))
-        return -1;
-
-    for (int i = 0; i < length; i++) {
-        if (index[i] == variable)
-            return i;
-    }
-}
-
 int main() {
 
     double *c, *b;
@@ -135,14 +41,25 @@ int main() {
     */
     int *B_index_phase1 = malloc(m * sizeof(int));
     int *N_index_phase1 = malloc(n * sizeof(int));
+
+    //ALOCAÇÃO
+
     initialize_phase1(m, n, B_index_phase1, N_index_phase1);
+
 
     double **B_phase1 = calloc(m, sizeof(double *));
     double **N_phase1 = calloc(m, sizeof(double *));
+
+    //ALOCAÇÃO
+
     initialization_phase1(B_phase1, N_phase1, A, m, n);
+
 
     double *basic_cost_phase1 = malloc(m*sizeof(double));
     double *non_basic_cost_phase1 = malloc(n*sizeof(double));
+
+    //ALOCAÇÃO
+
     for (int i = 0; i < m; i++) {
         basic_cost_phase1[i] = 1;
     }
@@ -151,6 +68,9 @@ int main() {
     }
 
     double *current_basic_x = malloc(m*sizeof(double));
+
+    //ALOCAÇÃO
+
     int iteration = 0;
 
     int phase1_status = 0;
@@ -159,16 +79,8 @@ int main() {
         B_index_phase1, N_index_phase1, m, m+n, &iteration);
     }
 
-    if (phase1_status == -2) {
-        printf("ERROR: No finite solution for the first phase.");
+    if (verify(phase1_status, max_iteration))
         goto cleanup;
-    } else if (phase1_status == -1) {
-        printf("ERROR: Not enough memory to allocate.");
-        goto cleanup;
-    } else if (phase1_status == 0) {
-        printf("ERROR: Max iteration (%d) reached.", max_iteration);
-        goto cleanup;
-    }
 
     /*Checks if the cost of optimal solution is zero*/
     double total_cost = 0;
@@ -182,7 +94,7 @@ int main() {
     }
     /*
     Here, we're assuming that the artificial variables aren't basic,
-    Hence, total_cost = 0 never happens
+    Hence, total_cost = 0 should never happen
     */
 
     int *B_index_phase2 = B_index_phase1;
@@ -192,6 +104,8 @@ int main() {
     for (int i = 0; i < m; i++) {
         N_phase2[i] = malloc((n-m) * sizeof(double));
     }
+
+    //ALOCAÇÃO
 
     /*
     Print x_0, ..., x_(m+n-1).
@@ -246,18 +160,8 @@ int main() {
         B_index_phase2, N_index_phase2, m, n, &iteration);
     }
 
-    if (phase1_status == -2) {
-        printf("ERROR: No finite solution for the first phase.");
+    if (verify(phase2_status, max_iteration))
         goto cleanup;
-    }
-    if (phase1_status == -1) {
-        printf("ERROR: Not enough memory to allocate.");
-        goto cleanup;
-    }
-    if (phase1_status == 0) {
-        printf("ERROR: Max iteration (%d) reached.", max_iteration);
-        goto cleanup;
-    }
 
     //Finds the total cost of the optimal solution.
     total_cost = 0;
