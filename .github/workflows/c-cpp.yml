@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Cache Python virtual environment
+      uses: actions/cache@v4
+      with:
+        path: build/venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
     - name: Configurar CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
