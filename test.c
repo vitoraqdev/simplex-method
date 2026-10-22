@@ -1,6 +1,7 @@
 #include "test.h"
 
 #include "gaussian_elimination.h"
+#include "phases_1_and_2.h"
 #include "simplex.h"
 
 // TODO: fazer testes unitarios das funções mais básicas, sem usar necessariamente o fixture
@@ -213,6 +214,80 @@ UTEST_F(SimplexFixture, test_simplex_step) {
         utest_fixture->normal_cost, utest_fixture->basic_index, utest_fixture->normal_index, utest_fixture->m,
         utest_fixture->n, &iteration);
     ASSERT_EQ(1, STATUS);
+}
+
+
+static void load_binary_matrix(const char *filename, int rows, int cols, double **A) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        fprintf(stderr, "Error: Could not open binary matrix file %s\n", filename);
+        exit(1);
+    }
+    for (int i = 0; i < rows; i++) {
+        fread(A[i], sizeof(double), cols, f);
+    }
+    fclose(f);
+}
+
+static void load_binary_vector(const char *filename, int size, double *v) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        fprintf(stderr, "Error: Could not open binary vector file %s\n", filename);
+        exit(1);
+    }
+    fread(v, sizeof(double), size, f);
+    fclose(f);
+}
+
+static void assert_primal_feasible(double **A, double *b, double *x, int rows, int cols, double tol) {
+}
+
+// Massive integration test loading 1000 constraints x 2000 variables
+UTEST(integration, large_scale_1000x2000) {
+    int rows = 1000;
+    int cols = 2000;
+
+    double *optimal_solution = malloc(cols * sizeof(double));
+    double optimal_cost = 0.0;
+    double expected_cost = 0.0;
+
+    double *b = malloc(rows * sizeof(double));
+    double *c = malloc(cols * sizeof(double));
+    double **A = malloc(rows * sizeof(double *));
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+    }
+
+    // Load matrices instantly via pure raw binary
+    load_binary_matrix("lp_test_A.bin", rows, cols, A);
+    load_binary_vector("lp_test_b.bin", rows, b);
+    load_binary_vector("lp_test_c.bin", cols, c);
+    load_binary_vector("lp_test_obj.bin", 1, &expected_cost);
+
+    int result = phases_1_and_2(c, A, b, rows, cols, optimal_solution, &optimal_cost);
+
+    // Assert solver success and correctness
+    double tol = 1e-3;
+    EXPECT_EQ(1, result);
+    EXPECT_NEAR(expected_cost, optimal_cost, tol);
+    for (int j = 0; j < cols; j++) {
+        EXPECT_GE(optimal_solution[j], -tol); // x_optimal >= 0
+    }
+    for (int i = 0; i < rows; i++) {
+        double row_sum = 0.0;
+        for (int j = 0; j < cols; j++) {
+            row_sum += A[i][j] * optimal_solution[j];
+        }
+        EXPECT_NEAR(row_sum, b[i], tol);
+    }
+
+    free(optimal_solution);
+    free(b);
+    free(c);
+    for (int i = 0; i < rows; i++) {
+        free(A[i]);
+    }
+    free(A);
 }
 
 UTEST_MAIN();
