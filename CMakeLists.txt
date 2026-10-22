@@ -8,7 +8,14 @@ add_executable(SimplexMethod
         simplex.c
         simplex.h
         gaussian_elimination.c
-        gaussian_elimination.h)
+        gaussian_elimination.h
+        auxiliar_functions.c
+        auxiliar_functions.h
+        initialize.c
+        initialize.h
+        phases_1_and_2.c
+        phases_1_and_2.h
+        )
 
 add_executable(SimplexTests
         test.c

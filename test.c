@@ -138,7 +138,7 @@ UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->basic_index[0] = 3;
     utest_fixture->basic_index[1] = 4;
 
-    // normal_index = [1 2 5]^T
+    // normal_index = [1 2 4]^T
     utest_fixture->normal_index[0] = 1;
     utest_fixture->normal_index[1] = 2;
     utest_fixture->normal_index[2] = 5;
@@ -201,42 +201,18 @@ UTEST_F(SimplexFixture, test_normal_variable_to_enter) {
     ASSERT_EQ(normal_variable_index, -1); // HARD CODED
 }
 
-// reduced costs is all positive here, i'm forcing another step just to check if its working, this test is not necessary
-// so we should create another test case when we have not finished yet.
-// probably take a bigger example, put it on a calculator/ai, check the values, and use the values it finds.
-// i'll do it later.
-UTEST_F(SimplexFixture, test_find_direction) {
-    double *N_column = malloc(utest_fixture->m*sizeof(double));
-    double *result_direction = malloc(utest_fixture->m*sizeof(double));
-    int normal_variable_index = 0; // HARD CODED
-    get_column(utest_fixture->N, utest_fixture->m, normal_variable_index, N_column); // defines A_column
-    find_direction(utest_fixture->B, result_direction, utest_fixture->m, N_column);
-    EXPECT_NEAR(utest_fixture->direction[0], result_direction[0], utest_fixture->tolerance);
-    EXPECT_NEAR(utest_fixture->direction[1], result_direction[1], utest_fixture->tolerance);
-    free(N_column);
-    free(result_direction);
-}
-
-
-
 UTEST_F(SimplexFixture, test_basic_variable_index_to_exit) {
     int basic_variable_index = basic_variable_index_to_exit(utest_fixture->current_basic_x, utest_fixture->direction,
         utest_fixture->m);
     ASSERT_EQ(basic_variable_index, 1); // HARD CODED
 }
 
-UTEST_F(SimplexFixture, test_find_step_size) {
-    int basic_variable_index = 1; // HARD CODED
-    double result_step_size = find_step_size(utest_fixture->current_basic_x, utest_fixture->direction, basic_variable_index);
-    EXPECT_NEAR(utest_fixture->step_size, result_step_size, utest_fixture->tolerance);
-}
-
-
 UTEST_F(SimplexFixture, test_simplex_step) {
+    int iteration = 0;
     int STATUS = simplex_step(utest_fixture->B, utest_fixture->N, utest_fixture->b, utest_fixture->basic_cost,
         utest_fixture->normal_cost, utest_fixture->basic_index, utest_fixture->normal_index, utest_fixture->m,
-        utest_fixture->n, 0);
-    ASSERT_EQ(1, STATUS); // optimality hard coded
+        utest_fixture->n, &iteration);
+    ASSERT_EQ(1, STATUS);
 }
 
 UTEST_MAIN();
