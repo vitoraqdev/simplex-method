@@ -1,4 +1,0 @@
-/home/thierry/Desktop/simplex-method/build/CMakeFiles/SimplexMethod.dir
-/home/thierry/Desktop/simplex-method/build/CMakeFiles/SimplexTests.dir
-/home/thierry/Desktop/simplex-method/build/CMakeFiles/edit_cache.dir
-/home/thierry/Desktop/simplex-method/build/CMakeFiles/rebuild_cache.dir

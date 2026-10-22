@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/SimplexMethod.dir/link.d CMakeFiles/SimplexMethod.dir/main.c.o CMakeFiles/SimplexMethod.dir/simplex.c.o CMakeFiles/SimplexMethod.dir/gaussian_elimination.c.o CMakeFiles/SimplexMethod.dir/auxiliar_functions.c.o CMakeFiles/SimplexMethod.dir/initialize.c.o CMakeFiles/SimplexMethod.dir/phases_1_and_2.c.o -o SimplexMethod
