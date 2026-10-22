@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/SimplexTests.dir/link.d CMakeFiles/SimplexTests.dir/test.c.o CMakeFiles/SimplexTests.dir/simplex.c.o CMakeFiles/SimplexTests.dir/gaussian_elimination.c.o -o SimplexTests

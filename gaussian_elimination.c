@@ -16,7 +16,7 @@ Algorithm pseudocode source: https://math.gordon.edu/courses/mat342/handouts/gau
 
 int gaussian_elimination(double **A, double *x, double *b, int n) {
     /*
-    Copies matrices A and b, so we don't change the original ones.
+    Copies matrices A and b, so we don't allocchange the original ones.
     x is not copied, because we want to change it and return the solution.
     
     malloc initializes all rows as NULL, making it safe to clean if something goes wrong during the rows malloc
@@ -26,15 +26,15 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
     double *s = malloc(n*sizeof(double)); //Row maximal elements
     int *p = malloc(n*sizeof(int)); //Row pointer
 
-    if((s == NULL) || (p == NULL) || (A_copy == NULL) || (b_copy == NULL)){
-        printf("ERROR: Out of Memory\n");
+    if (!A_copy || !b_copy || !s || !p) {
+        int status = -1;
         goto cleanup;
     }
 
     for (int i = 0; i < n; i++) {
         A_copy[i] = malloc(n * sizeof(double));
-        if (A_copy[i] == NULL) {
-            printf("ERROR: Out of Memory\n");
+        if (!A_copy[i]) {
+            int status = -1;
             goto cleanup;
         }
         b_copy[i] = b[i];
@@ -124,10 +124,12 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
     status = 0;
 
 cleanup:
-    for (int i = 0; i < n; i++) {
-        free(A_copy[i]);
+    if (A_copy) {
+        for (int i = 0; i < n; i++) {
+            free(A_copy[i]); // O free(NULL) é seguro em C, mas só liberamos o que foi alocado
+        }
+        free(A_copy);
     }
-    free(A_copy);
     free(b_copy);
     free(p);
     free(s);
