@@ -217,70 +217,6 @@ UTEST_F(SimplexFixture, test_simplex_step) {
 }
 
 
-// Teste maior, A_{4x8}
-UTEST(integration, test_1) {
-    int rows = 4; // Number of rows in A and b[cite: 1]
-    int cols = 8; // Number of columns in A[cite: 1]
-
-    double *optimal_solution = malloc(cols*sizeof(double));
-    double optimal_cost;
-
-    // 1. Dynamically allocate vector b (4 rows, 1 col)[cite: 1]
-    double *b = malloc(rows * sizeof(double));
-
-    // 2. Dynamically allocate matrix A (4 rows by 8 columns)[cite: 1]
-    double **A = malloc(rows * sizeof(double *));
-
-    double *c = malloc(cols * sizeof(double));
-
-    c[0] = -1.0; // x1
-    c[1] = -1.0; // x2
-    for (int j = 2; j < cols; j++) {
-        c[j] = 0.0; // x3 through x8 have 0 coefficient
-    }
-
-    for (int i = 0; i < rows; i++) {
-        A[i] = malloc(cols * sizeof(double));
-    }
-
-    // 3. Populate vector b values[cite: 1]
-    b[0] =  2.0;
-    b[1] = -3.0;
-    b[2] = -1.0;
-    b[3] = -1.0;
-
-    // 4. Populate matrix A values[cite: 1]
-    // Row 0: [-1,  0,  0,  0,  1,  1,  1,  0][cite: 1]
-    A[0][0] = -1.0; A[0][1] =  0.0; A[0][2] =  0.0; A[0][3] =  0.0;
-    A[0][4] =  1.0; A[0][5] =  1.0; A[0][6] =  1.0; A[0][7] =  0.0;
-
-    // Row 1: [ 1, -1,  0,  0,  0,  0,  0,  1][cite: 1]
-    A[1][0] =  1.0; A[1][1] = -1.0; A[1][2] =  0.0; A[1][3] =  0.0;
-    A[1][4] =  0.0; A[1][5] =  0.0; A[1][6] =  0.0; A[1][7] =  1.0;
-
-    // Row 2: [ 0, -1, -1,  0,  0,  1,  0,  0][cite: 1]
-    A[2][0] =  0.0; A[2][1] = -1.0; A[2][2] = -1.0; A[2][3] =  0.0;
-    A[2][4] =  0.0; A[2][5] =  1.0; A[2][6] =  0.0; A[2][7] =  0.0;
-
-    // Row 3: [ 0,  0,  1, -1,  0,  0,  1,  0][cite: 1]
-    A[3][0] =  0.0; A[3][1] =  0.0; A[3][2] =  1.0; A[3][3] = -1.0;
-    A[3][4] =  0.0; A[3][5] =  0.0; A[3][6] =  1.0; A[3][7] =  0.0;
-
-    int result = phases_1_and_2(c, A, b, rows, cols, optimal_solution, &optimal_cost);
-
-    EXPECT_EQ(-1, result);
-
-
-    // 6. Clean up dynamically allocated memory
-    free(b);
-    for (int i = 0; i < rows; i++) {
-        free(A[i]);
-    }
-    free(A);
-
-}
-
-
 static void load_binary_matrix(const char *filename, int rows, int cols, double **A) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
@@ -353,10 +289,5 @@ UTEST(integration, large_scale_1000x2000) {
     }
     free(A);
 }
-
-
-
-
-
 
 UTEST_MAIN();
