@@ -141,7 +141,7 @@ UTEST_F_SETUP(SimplexFixture) {
     // normal_index = [1 2 4]^T
     utest_fixture->normal_index[0] = 1;
     utest_fixture->normal_index[1] = 2;
-    utest_fixture->normal_index[2] = 4;
+    utest_fixture->normal_index[2] = 5;
 
 }
 

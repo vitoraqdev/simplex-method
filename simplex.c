@@ -190,20 +190,6 @@ int simplex_step(double **B, double **N, double *b, double *basic_cost, double *
     */
     gaussian_elimination(B, direction, N_col, rows);
 
-    // if y <= 0
-    int FLAG = -1;
-    for (int i = 0; i < rows; i++) {
-        if (direction[i] > 0) {
-            FLAG = 0;
-        }
-    }
-
-    if (FLAG == -1) {
-        STATUS = SIMPLEX_NO_FINITE_SOLUTION;
-        goto cleanup;
-    }
-
-
     int basic_variable_index = basic_variable_index_to_exit(current_basic_x, direction, rows);
     if (basic_variable_index == -1){
         STATUS = SIMPLEX_NO_FINITE_SOLUTION;
