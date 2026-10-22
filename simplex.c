@@ -74,7 +74,7 @@ int normal_variable_index_to_enter(double *reduced_cost, int N_cols_size) {
     double best_cost = 0.0;
     int index = -1;
 
-    for (int i = 1; i < N_cols_size; i++) {
+    for (int i = 0; i < N_cols_size; i++) {
         if (reduced_cost[i] < best_cost) {
                 best_cost = reduced_cost[i];
                 index = i;
