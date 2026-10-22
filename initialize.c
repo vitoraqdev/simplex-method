@@ -50,8 +50,14 @@ int initialize_input(double **c, double ***A, double **b, int *m, int *n){
     return 0;
 
     cleanup:
-        if (*c) { free(*c); *c = NULL; }
-        if (*b) { free(*b); *b = NULL; }
+        if (c && *c) { 
+            free(*c); 
+            *c = NULL; 
+        }
+        if (b && *b) { 
+            free(*b); 
+            *b = NULL; 
+        }
         if (*A) {
             for (int i = 0; i < *m; i++) {
                 if ((*A)[i]) free((*A)[i]);
