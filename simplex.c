@@ -163,9 +163,14 @@ int simplex_step(double **B, double **N, double *b, double *basic_cost, double *
 
     for (int i = 0; i < rows; i++) {
         B_transpose[i] = malloc(rows * sizeof(double));
+        if (!B_transpose[i]) {
+            STATUS = SIMPLEX_MEMORY_FAILURE;
+            goto cleanup;
+        }
     }
     transpose(B, B_transpose, rows);
-    gaussian_elimination(B_transpose, lambda, basic_cost, rows);
+
+    gaussian_elimination(B_transpose, lambda, basic_cost, rows); //Finds the value of lambda by solving B^T * lambda = c_B
 
     find_reduced_cost(normal_cost, lambda, N, rows, cols, reduced_cost);
 
@@ -176,6 +181,7 @@ int simplex_step(double **B, double **N, double *b, double *basic_cost, double *
         goto cleanup;
     }
 
+    /*Takes the column of the non-basic variable to enter the basis*/
     get_column(N, rows, normal_variable_index, N_col);
 
     /*
@@ -202,11 +208,6 @@ int simplex_step(double **B, double **N, double *b, double *basic_cost, double *
     if (basic_variable_index == -1){
         STATUS = SIMPLEX_NO_FINITE_SOLUTION;
         goto cleanup;
-    } else {
-        /*
-        Find the step size to move along the direction
-        */
-        double step_size = current_basic_x[basic_variable_index]/direction[basic_variable_index];
     }
 
     switch_basic_and_normal_column(B, N, basic_variable_index, normal_variable_index, rows);
