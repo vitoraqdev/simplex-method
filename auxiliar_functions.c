@@ -24,21 +24,6 @@ int inverse_index(int *index, int length, int variable) {
     }
 }
 
-int verify(int phase1_status, int max_iteration){
-    if (phase1_status == -2) {
-        printf("ERROR: No finite solution for the first phase.");
-        return 1;
-    }
-    if (phase1_status == -1) {
-        printf("ERROR: Not enough memory to allocate.");
-        return 1;
-    }
-    if (phase1_status == 0) {
-        printf("ERROR: Max iteration (%d) reached.", max_iteration);
-        return 1;
-    }
-    return 0;
-}
 
 /*
 Chooses the indices of the basic and non-basic variables for phase I of the simplex method.
