@@ -11,7 +11,7 @@
 #define EPSILON 1e-6
 #define MAX_ITERATION 100
 
-void phases_1_and_2(double *c, double **A, double *b, int m, int n){
+int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optimal_solution, double *best_cost){
 
     /*
     FIRST PHASE
@@ -30,6 +30,8 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
     double *basic_cost_phase2 = NULL;
     double *non_basic_cost_phase2 = NULL;
 
+    SimplexStatus STATUS = SIMPLEX_MEMORY_FAILURE; // Assume memory failure
+
     if (!B_index_phase1 || !N_index_phase1 || !B_phase1 || !N_phase1 || 
         !basic_cost_phase1 || !non_basic_cost_phase1 || !current_basic_x) {
         printf("ERROR: Not enough memory to allocate.\n");
@@ -38,7 +40,7 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
 
     initialize_phase1(m, n, B_index_phase1, N_index_phase1);
 
-    if (!initialization_phase1(B_phase1, N_phase1, A, m, n)) {
+    if (initialization_phase1(B_phase1, N_phase1, A, m, n) == -1) {
         printf("ERROR: Memory allocation failed in initialization_phase1.\n");
         goto cleanup;
     }
@@ -51,14 +53,11 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
     }
 
     int iteration = 0;
-    int phase1_status = 0;
-    while (phase1_status == 0 && iteration <= MAX_ITERATION) {
+    int phase1_status = SIMPLEX_KEEP_GOING;
+    while (phase1_status == SIMPLEX_KEEP_GOING && iteration <= MAX_ITERATION) {
         phase1_status = simplex_step(B_phase1, N_phase1, b, basic_cost_phase1, non_basic_cost_phase1,
         B_index_phase1, N_index_phase1, m, m+n, &iteration);
     }
-
-    if (verify(phase1_status, MAX_ITERATION))
-        goto cleanup;
 
     /*Checks if the cost of optimal solution is zero*/
     double total_cost = 0;
@@ -66,10 +65,27 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
     for (int i = 0; i < m; i++) {
         total_cost += basic_cost_phase1[i]*current_basic_x[i];
     }
+
+    // Verify phase 1 status
     if (fabs(total_cost) > EPSILON) {
-        printf("ERROR: First phase failed. Total cost %.6lf != 0", total_cost);
+        printf("ERROR: First phase cost non-zero. Total cost %.6lf != 0\n", total_cost);
+        STATUS = FIRST_PHASE_COST_NOT_ZERO;
         goto cleanup;
     }
+    if (phase1_status == MAX_ITERATION_REACHED) {
+        printf("ERROR: Max iteration (%d) reached.\n", MAX_ITERATION);
+        goto cleanup;
+    }
+    if (phase1_status == SIMPLEX_NO_FINITE_SOLUTION) {
+        printf("ERROR: No finite solution for the first phase.\n");
+        goto cleanup;
+    }
+    if (phase1_status == SIMPLEX_MEMORY_FAILURE) {
+        printf("ERROR: Not enough memory to allocate.\n");
+        goto cleanup;
+    }
+
+
     /*
     Here, we're assuming that the artificial variables aren't basic,
     Hence, total_cost = 0 should never happen
@@ -95,6 +111,7 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
     Print x_0, ..., x_(m+n-1).
     The n variables should be 0.
     */
+    printf("Phase 1 variables:\n");
     for (int i = 0; i < m+n; i++) {
         if (is_in_index(B_index_phase1, m, i)) {
             int inv_index = inverse_index(B_index_phase1, m, i); //Where it is in the B_index.
@@ -140,15 +157,27 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
 
 
     /*Now, we start the second phase of the simplex method, which will find the optimal solution to the original problem.*/
-    int phase2_status = 0;
+    int phase2_status = SIMPLEX_KEEP_GOING;
     iteration = 0;
-    while (phase2_status == 0 && iteration <= MAX_ITERATION) {
+    while (phase2_status == SIMPLEX_KEEP_GOING && iteration <= MAX_ITERATION) {
         phase2_status = simplex_step(B_phase2, N_phase2, b, basic_cost_phase2, non_basic_cost_phase2,
         B_index_phase2, N_index_phase2, m, n, &iteration);
     }
 
-    if (verify(phase2_status, MAX_ITERATION))
+    // Verify phase 2 status
+    if (phase2_status == MAX_ITERATION_REACHED) {
+        printf("ERROR: Max iteration (%d) reached.\n", MAX_ITERATION);
         goto cleanup;
+    }
+    if (phase2_status == SIMPLEX_NO_FINITE_SOLUTION) {
+        printf("ERROR: No finite solution for the second phase.\n");
+        goto cleanup;
+    }
+    if (phase2_status == SIMPLEX_MEMORY_FAILURE) {
+        printf("ERROR: Not enough memory to allocate.\n");
+        goto cleanup;
+    }
+
 
     //Finds the total cost of the optimal solution.
     total_cost = 0;
@@ -161,13 +190,19 @@ void phases_1_and_2(double *c, double **A, double *b, int m, int n){
     Prints the optimal solution of the original problem, which is the values of x_0, ..., x_(n-1).
     The remaining variables should be 0.
     */
+    printf("Phase 2 variables:\n");
     for (int i = 0; i < n; i++) {
         if (is_in_index(B_index_phase2, m, i)) {
             int inv_index = inverse_index(B_index_phase2, m, i); // where it is in the B_index
+            optimal_solution[i] = current_basic_x[inv_index];
             printf("x_%d: %.6lf\n", i, current_basic_x[inv_index]);
-        } else
+        } else {
+            optimal_solution[i] = 0;
             printf("x_%d: 0\n", i);
+        }
     }
+
+    STATUS = SIMPLEX_OPTIMAL;
 
 
 
@@ -201,4 +236,6 @@ cleanup:
     if (basic_cost_phase1) free(basic_cost_phase1);
     if (non_basic_cost_phase1) free(non_basic_cost_phase1);
     if (current_basic_x) free(current_basic_x);
+
+    return STATUS;
 }
