@@ -54,7 +54,3 @@ dkms.conf
 # debug information files
 *.dwo
 build/
-/lp_test_A.bin
-/lp_test_b.bin
-/lp_test_c.bin
-/lp_test_obj.bin
