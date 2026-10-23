@@ -200,12 +200,14 @@ int simplex_step(double **B, double **N, double *b, double *basic_cost, double *
     (*iteration)++;
 
 cleanup:
-    for (int i = 0; i < rows; i++) {
-        free(B_transpose[i]);
+    if (B_transpose) {
+        for (int i = 0; i < rows; i++) {
+            free(B_transpose[i]);
+        }
+        free(B_transpose);
     }
     free(current_basic_x);
     free(lambda);
-    free(B_transpose);
     free(reduced_cost);
     free(N_col);
     free(direction);

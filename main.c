@@ -23,8 +23,8 @@ b_1 b_2 ... b_m
 
 int main(){
 
-    double *c, *b;
-    double **A;
+    double *c = NULL, *b = NULL;
+    double **A = NULL;
     int m, n;
 
     /*Input reading*/
@@ -35,14 +35,14 @@ int main(){
     /*Does both phases of the simplex method*/
     phases_1_and_2(c, A, b, m, n);
 
-    if (A != NULL) {
+    if (A) {
         for (int i = 0; i < m; i++) {
             free(A[i]);
         }
         free(A);
     }
-    if (c != NULL) free(c);
-    if (b != NULL) free(b);
-    
+    if (c) free(c);
+    if (b) free(b);
+
     return 0;
 }

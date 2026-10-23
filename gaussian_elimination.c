@@ -26,15 +26,18 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
     double *s = malloc(n*sizeof(double)); //Row maximal elements
     int *p = malloc(n*sizeof(int)); //Row pointer
 
+    /*
+    We assume failure, and set status to 0 if the algorithm succeeds. This way, we can use goto cleanup to free memory and return failure if something goes wrong.
+    */
+    int status = -1;
+
     if (!A_copy || !b_copy || !s || !p) {
-        int status = -1;
         goto cleanup;
     }
 
     for (int i = 0; i < n; i++) {
         A_copy[i] = malloc(n * sizeof(double));
         if (!A_copy[i]) {
-            int status = -1;
             goto cleanup;
         }
         b_copy[i] = b[i];
@@ -43,10 +46,6 @@ int gaussian_elimination(double **A, double *x, double *b, int n) {
         }
     }
 
-    /*
-    We assume failure, and set status to 0 if the algorithm succeeds. This way, we can use goto cleanup to free memory and return failure if something goes wrong.
-    */
-    int status = -1;
     for (int i = 0; i < n; i++) {
         s[i] = 0;
         p[i] = i;
