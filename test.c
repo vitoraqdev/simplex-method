@@ -62,8 +62,8 @@ UTEST_F_SETUP(SimplexFixture) {
     utest_fixture->current_basic_x = malloc(utest_fixture->m * sizeof(double));
     utest_fixture->reduced_cost = malloc(utest_fixture->N_col_size * sizeof(double));
     utest_fixture->direction = malloc(utest_fixture->m * sizeof(double));
-    utest_fixture->basic_index = malloc(utest_fixture->m * sizeof(double));
-    utest_fixture->normal_index = malloc(utest_fixture->N_col_size * sizeof(double));
+    utest_fixture->basic_index = malloc(utest_fixture->m * sizeof(int));
+    utest_fixture->normal_index = malloc(utest_fixture->N_col_size * sizeof(int));
 
 
     // Using wikipedia https://en.wikipedia.org/wiki/Revised_simplex_method numerical example
