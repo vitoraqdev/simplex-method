@@ -2,6 +2,16 @@
 #define SIMPLEX_METHOD_SIMPLEX_H
 #include <stddef.h>
 
+typedef enum {
+    FIRST_PHASE_COST_NOT_ZERO = -4,
+    MAX_ITERATION_REACHED = -3,
+    SIMPLEX_NO_FINITE_SOLUTION = -2,
+    SIMPLEX_MEMORY_FAILURE = -1,
+    SIMPLEX_KEEP_GOING = 0,
+    SIMPLEX_OPTIMAL = 1
+} SimplexStatus;
+
+
 int multiplier_simplex_vector(double **base, double *lambda, double *base_cost, int tam);
 
 int find_reduced_cost(double *normal_cost, double *lambda, double **N, int m, int n, double *reduced_cost);

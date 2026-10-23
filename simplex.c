@@ -127,12 +127,6 @@ int switch_basic_and_normal_column(double **B, double **N, int base_col_index, i
 }
 
 
-typedef enum {
-    SIMPLEX_NO_FINITE_SOLUTION = -2,
-    SIMPLEX_MEMORY_FAILURE = -1,
-    SIMPLEX_KEEP_GOING = 0,
-    SIMPLEX_OPTIMAL = 1
-} SimplexStatus;
 
 /*
 Columns refer to the A_mxn columns, N has (cols-rows) columns
