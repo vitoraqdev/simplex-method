@@ -41,9 +41,9 @@ b = A @ x_optimal
 c_B = RNG.random(m)
 slack = RNG.random(n-m)
 
-c_N = c_B @ A[m:, m:] + slack
+c_N = c_B @ A[:, m:] + slack
 
-c = np.concatenate(c_B, c_N)
+c = np.concatenate((c_B, c_N))
 
 optimal_cost = c_B @ b
 
