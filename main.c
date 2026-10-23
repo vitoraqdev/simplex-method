@@ -23,8 +23,8 @@ b_1 b_2 ... b_m
 
 int main(){
 
-    double *c, *b;
-    double **A;
+    double *c = NULL, *b = NULL;
+    double **A = NULL;
     int m, n;
 
     /*Input reading*/
