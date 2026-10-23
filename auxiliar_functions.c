@@ -15,9 +15,6 @@ int is_in_index(int *index, int length, int variable) {
 }
 
 int inverse_index(int *index, int length, int variable) {
-    if (!is_in_index(index, length, variable))
-        return -1;
-
     for (int i = 0; i < length; i++) {
         if (index[i] == variable)
             return i;
