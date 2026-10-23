@@ -22,6 +22,7 @@ int inverse_index(int *index, int length, int variable) {
         if (index[i] == variable)
             return i;
     }
+    return -1;
 }
 
 
