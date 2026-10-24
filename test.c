@@ -313,10 +313,23 @@ static void load_binary_vector(const char *filename, int size, double *v) {
 //     free(result_lambda);
 // }
 
+static void load_binary_int(const char *filename, int *val) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        fprintf(stderr, "Error: Could not open binary file %s\n", filename);
+        exit(1);
+    }
+    fread(val, sizeof(int), 1, f);
+    fclose(f);
+}
+
 // Massive integration test
 UTEST(integration, large_scale) {
-    int rows = LP_TEST_M; // environmental variables
-    int cols = LP_TEST_N;
+    int rows, cols;
+
+    load_binary_int("../lp_test_m.bin", &rows);
+    load_binary_int("../lp_test_n.bin", &cols);
+
     double *result_solution = malloc(cols * sizeof(double));
     double result_cost = 0.0;
     double expected_cost = 0.0;

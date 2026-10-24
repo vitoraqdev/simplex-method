@@ -7,12 +7,13 @@ min c^T*x
 Ax = b
 x >= 0
 
-Outputs 4 binary files, one for each matrix and one for the optimal solution, to plug into the simplex testing.
+Outputs 6 binary files, two for m and n, one for each matrix and one for the optimal solution, to plug into the simplex testing.
 
 We are going to generate A_{mxn} and x_optimal randomly, and force the first m columns of A to be the identity,
 then solve b = A*x, and since we want x_optimal to be the solution, reduced cost must be >= 0 (minimization problem).
 =>  ĉ_Nj = c_Nj - λ^T * a_Nj >= 0
 =>  c_Nj >= λ^T * a_Nj
+
 =>  c_Nj = λ^T * a_Nj + slack,  slack >= 0
 Since B = I_m
 =>  c_Nj = c_B^T * B^-1 * a_Nj + slack
@@ -32,7 +33,6 @@ other variables.
 import os
 m = int(os.environ.get("LP_TEST_M", 100)) # default 100
 n = int(os.environ.get("LP_TEST_N", 200)) # default 200
-print(m, n)
 
 RNG = np.random.default_rng(42)
 
@@ -65,7 +65,12 @@ RNG.shuffle(c)
 # print(c[:m])
 # print(optimal_cost)
 # Output to bin file
-A.astype(np.float64).tofile("lp_test_A.bin")
+
+np.array([m], dtype=np.int32).tofile("lp_test_m.bin")
+np.array([n], dtype=np.int32).tofile("lp_test_n.bin")
+
+np.ascontiguousarray(A).astype(np.float64).tofile("lp_test_A.bin")
 b.astype(np.float64).tofile("lp_test_b.bin")
 c.astype(np.float64).tofile("lp_test_c.bin")
-optimal_cost.astype(np.float64).tofile("lp_test_obj.bin")
+
+np.array([optimal_cost], dtype=np.float64).tofile("lp_test_obj.bin")

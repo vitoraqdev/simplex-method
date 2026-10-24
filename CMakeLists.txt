@@ -11,6 +11,8 @@ set(BINARY_TEST_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_b.bin"
         "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_c.bin"
         "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_obj.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_m.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_n.bin"
 )
 set(PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py")
 set(REQUIREMENTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
