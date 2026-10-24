@@ -11,8 +11,8 @@ x_axis = []
 y_axis = []
 z_axis = []
 
-for i in range(1, 100, 10):
-    for j in range(i, 100, 10):
+for i in range(1, 500, 10):
+    for j in range(i, 500, 10):
         tests.append((i, j))
 
 binary_generator = "lp_test.py"
