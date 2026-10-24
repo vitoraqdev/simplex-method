@@ -51,7 +51,7 @@ c_N = c_B @ A[:, m:] + slack
 
 c = np.concatenate((c_B, c_N))
 
-optimal_cost = c_B @ b
+optimal_cost = c @ x_optimal
 
 
 """
