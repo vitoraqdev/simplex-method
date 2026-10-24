@@ -36,14 +36,15 @@ n = int(os.environ.get("LP_TEST_N", 200)) # default 200
 
 RNG = np.random.default_rng(42)
 
-A = RNG.random((m, n))
+A = RNG.uniform(-1, 1, size=(m, n))
 
 A[:m, :m] = np.eye(m)
 
 x_optimal = RNG.random(n)
 b = A @ x_optimal
-c_B = RNG.random(m)
-slack = RNG.random(n-m)
+
+c_B = RNG.uniform(-1, 1, size=(m))
+slack = RNG.uniform(-1, 1, size=(n-m))
 
 c_N = c_B @ A[:, m:] + slack
 
