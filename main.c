@@ -23,8 +23,8 @@ b_1 b_2 ... b_m
 
 int main(){
 
-    double *c, *b;
-    double **A;
+    double *c = NULL, *b = NULL;
+    double **A = NULL;
     double *optimal_solution;
     double best_cost;
     int m, n;
@@ -37,14 +37,15 @@ int main(){
     /*Does both phases of the simplex method*/
     phases_1_and_2(c, A, b, m, n, optimal_solution, &best_cost);
 
-    if (A != NULL) {
+    if (A) {
         for (int i = 0; i < m; i++) {
             free(A[i]);
         }
         free(A);
     }
-    if (c != NULL) free(c);
-    if (b != NULL) free(b);
+  
+    if (c) free(c);
+    if (b) free(b);
     free(optimal_solution);
     
     return 0;
