@@ -29,7 +29,11 @@ For testing purposes I'm going to permutate matrix A to remove the identity from
 other variables. 
 """
 
-m, n = 1000, 2000
+import os
+m = int(os.environ.get("LP_TEST_M", 100)) # default 100
+n = int(os.environ.get("LP_TEST_N", 200)) # default 200
+print(m, n)
+
 RNG = np.random.default_rng(42)
 
 A = RNG.random((m, n))
@@ -53,12 +57,13 @@ Permutate resetting the seed, to have same permutation for all matrices
 """
 
 RNG = np.random.default_rng(42)
-RNG.shuffle(A)
-RNG = np.random.default_rng(42)
-RNG.shuffle(b)
+RNG.shuffle(A, axis=1)
 RNG = np.random.default_rng(42)
 RNG.shuffle(c)
 
+# print(A[:m, :m])
+# print(c[:m])
+# print(optimal_cost)
 # Output to bin file
 A.astype(np.float64).tofile("lp_test_A.bin")
 b.astype(np.float64).tofile("lp_test_b.bin")

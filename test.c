@@ -239,16 +239,86 @@ static void load_binary_vector(const char *filename, int size, double *v) {
     fclose(f);
 }
 
-static void assert_primal_feasible(double **A, double *b, double *x, int rows, int cols, double tol) {
-}
+/* THIS WAS FOR DEBUGGING PURPOSES, CAN KEEP THIS LATER FOR AN EVEN MORE INTEGRATED TEST
+ * USING PYTHON WE CAN GET ALL VARIABLES, EXPORT TO ONE SINGLE FILE, AND USE IT IN THE TESTS
+*/
+// UTEST(gaussian_elimination, random_100x100) {
+//     int n = 100;
+//     double **A = malloc(n * sizeof(double *));
+//     for (int i = 0; i < n; i++) {
+//         A[i] = malloc(n * sizeof(double));
+//     }
+//     double *b = malloc(n * sizeof(double));
+//     double *expected_x = malloc(n * sizeof(double));
+//     double *result_x = malloc(n * sizeof(double));
+//
+//     // Load matrices/vectors via your binary helpers
+//     load_binary_matrix("../ge_test_A.bin", n, n, A);
+//     load_binary_vector("../ge_test_b.bin", n, b);
+//     load_binary_vector("../ge_test_x.bin", n, expected_x);
+//
+//     // Run the solver function
+//     gaussian_elimination(A, result_x, b, n);
+//
+//     // Assert correctness against NumPy's expected solution
+//     double tol = 1e-4;
+//     for (int i = 0; i < n; i++) {
+//         EXPECT_NEAR(expected_x[i], result_x[i], tol);
+//     }
+//
+//     // Cleanup
+//     for (int i = 0; i < n; i++) {
+//         free(A[i]);
+//     }
+//     free(A);
+//     free(b);
+//     free(expected_x);
+//     free(result_x);
+// }
+//
+// UTEST(simplex_math, simplex_multiplier_vector_random) {
+//     int m = 100;
+//
+//     // Allocate memory
+//     double **B = malloc(m * sizeof(double *));
+//     for (int i = 0; i < m; i++) {
+//         B[i] = malloc(m * sizeof(double));
+//     }
+//     double *c_B = malloc(m * sizeof(double));
+//     double *expected_lambda = malloc(m * sizeof(double));
+//     double *result_lambda = malloc(m * sizeof(double));
+//
+//     // Load matrices/vectors generated from Python (adjust path if running from build/)
+//     load_binary_matrix("../lambda_B.bin", m, m, B);
+//     load_binary_vector("../lambda_c_B.bin", m, c_B);
+//     load_binary_vector("../lambda.bin", m, expected_lambda);
+//
+//     // Call your function under test
+//     // Note: multiplier_simplex_vector takes (B, result_lambda, basic_cost, m)
+//     multiplier_simplex_vector(B, result_lambda, c_B, m);
+//
+//     // Assert correctness against NumPy's direct solve solution
+//     double tol = 1e-4;
+//     for (int i = 0; i < m; i++) {
+//         EXPECT_NEAR(expected_lambda[i], result_lambda[i], tol);
+//     }
+//
+//     // Cleanup
+//     for (int i = 0; i < m; i++) {
+//         free(B[i]);
+//     }
+//     free(B);
+//     free(c_B);
+//     free(expected_lambda);
+//     free(result_lambda);
+// }
 
-// Massive integration test loading 1000 constraints x 2000 variables
-UTEST(integration, large_scale_1000x2000) {
-    int rows = 1000;
-    int cols = 2000;
-
-    double *optimal_solution = malloc(cols * sizeof(double));
-    double optimal_cost = 0.0;
+// Massive integration test
+UTEST(integration, large_scale) {
+    int rows = LP_TEST_M; // environmental variables
+    int cols = LP_TEST_N;
+    double *result_solution = malloc(cols * sizeof(double));
+    double result_cost = 0.0;
     double expected_cost = 0.0;
 
     double *b = malloc(rows * sizeof(double));
@@ -259,29 +329,29 @@ UTEST(integration, large_scale_1000x2000) {
     }
 
     // Load matrices instantly via pure raw binary
-    load_binary_matrix("lp_test_A.bin", rows, cols, A);
-    load_binary_vector("lp_test_b.bin", rows, b);
-    load_binary_vector("lp_test_c.bin", cols, c);
-    load_binary_vector("lp_test_obj.bin", 1, &expected_cost);
+    load_binary_matrix("../lp_test_A.bin", rows, cols, A);
+    load_binary_vector("../lp_test_b.bin", rows, b);
+    load_binary_vector("../lp_test_c.bin", cols, c);
+    load_binary_vector("../lp_test_obj.bin", 1, &expected_cost);
 
-    int result = phases_1_and_2(c, A, b, rows, cols, optimal_solution, &optimal_cost);
+    int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
 
     // Assert solver success and correctness
     double tol = 1e-3;
     EXPECT_EQ(1, result);
-    EXPECT_NEAR(expected_cost, optimal_cost, tol);
+    EXPECT_NEAR(expected_cost, result_cost, tol);
     for (int j = 0; j < cols; j++) {
-        EXPECT_GE(optimal_solution[j], -tol); // x_optimal >= 0
+        EXPECT_GE(result_solution[j], -tol); // x_optimal >= 0
     }
     for (int i = 0; i < rows; i++) {
         double row_sum = 0.0;
         for (int j = 0; j < cols; j++) {
-            row_sum += A[i][j] * optimal_solution[j];
+            row_sum += A[i][j] * result_solution[j];
         }
         EXPECT_NEAR(row_sum, b[i], tol);
     }
 
-    free(optimal_solution);
+    free(result_solution);
     free(b);
     free(c);
     for (int i = 0; i < rows; i++) {
@@ -289,5 +359,7 @@ UTEST(integration, large_scale_1000x2000) {
     }
     free(A);
 }
+
+
 
 UTEST_MAIN();
