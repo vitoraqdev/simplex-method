@@ -34,4 +34,5 @@ jobs:
       run: cmake --build build --target SimplexTests
 
     - name: Executar os testes unitários
-      run: ./build/SimplexTests
+      working-directory: build
+      run: ./SimplexTests
