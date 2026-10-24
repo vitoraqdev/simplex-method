@@ -6,8 +6,8 @@ import platform
 #Tuples (m, n) to test
 tests = []
 
-for i in range(1, 20):
-    for j in range(i, 20):
+for i in range(1, 1000, 10):
+    for j in range(i, 1000, 10):
         tests.append((i, j))
 
 binary_generator = "lp_test.py"
