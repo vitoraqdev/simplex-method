@@ -2,9 +2,14 @@ import os
 import subprocess
 import time
 import platform
+import matplotlib.pyplot as plt
 
 #Tuples (m, n) to test
 tests = []
+
+x_axis = []
+y_axis = []
+z_axis = []
 
 for i in range(1, 1000, 10):
     for j in range(i, 1000, 10):
@@ -43,5 +48,29 @@ for m, n in tests:
         # Write the results to the file
         f.write(f"{m} {n} {time_taken}\n")
         f.flush()  # Ensure data is written to disk
+        x_axis.append(n)
+        y_axis.append(m)
+        z_axis.append(time_taken)
 
 f.close()
+
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+
+ax.scatter(
+    x_axis, y_axis, z_axis, 
+    c='r',
+    marker='o',
+    s=20,
+    alpha=0.8,
+    label='Tempo de Execução para (m,n)'
+)
+
+ax.set_xlabel('Número de Variáveis (n)')
+ax.set_ylabel('Número de Restrições (m)')
+ax.set_zlabel('Tempo de Execução (s)')
+ax.set_title('Desempenho do Algoritmo Simplex')
+
+ax.legend()
+plt.show()
