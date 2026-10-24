@@ -41,10 +41,11 @@ A = RNG.uniform(-1, 1, size=(m, n))
 A[:m, :m] = np.eye(m)
 
 x_optimal = RNG.random(n)
+x_optimal[m:] = 0
 b = A @ x_optimal
 
 c_B = RNG.uniform(-1, 1, size=(m))
-slack = RNG.uniform(-1, 1, size=(n-m))
+slack = RNG.random(m)
 
 c_N = c_B @ A[:, m:] + slack
 
