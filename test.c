@@ -325,6 +325,7 @@ static void load_binary_int(const char *filename, int *val) {
 
 // Massive integration test
 UTEST(integration, large_scale) {
+    int rows, cols;
 
     load_binary_int("lp_test_m.bin", &rows);
     load_binary_int("lp_test_n.bin", &cols);

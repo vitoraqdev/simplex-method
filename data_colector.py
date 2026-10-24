@@ -15,9 +15,9 @@ binary_generator = "lp_test.py"
 f = open("data.txt", 'w')
 
 if platform.system() == "Windows":
-    test_in_c = "./test.exe"
+    test_in_c = "./build/SimplexTests.exe"
 else:
-    test_in_c = "./test"
+    test_in_c = "./build/SimplexTests"
 
 for m, n in tests:
     
