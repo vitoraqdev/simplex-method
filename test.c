@@ -327,8 +327,8 @@ static void load_binary_int(const char *filename, int *val) {
 UTEST(integration, large_scale) {
     int rows, cols;
 
-    load_binary_int("./lp_test_m.bin", &rows);
-    load_binary_int("lp_test_n.bin", &cols);
+    load_binary_int("../lp_test_m.bin", &rows);
+    load_binary_int("../lp_test_n.bin", &cols);
 
     double *result_solution = malloc(cols * sizeof(double));
     double result_cost = 0.0;
@@ -342,10 +342,10 @@ UTEST(integration, large_scale) {
     }
 
     // Load matrices instantly via pure raw binary
-    load_binary_matrix("./lp_test_A.bin", rows, cols, A);
-    load_binary_vector("./lp_test_b.bin", rows, b);
-    load_binary_vector("./lp_test_c.bin", cols, c);
-    load_binary_vector("./lp_test_obj.bin", 1, &expected_cost);
+    load_binary_matrix("../lp_test_A.bin", rows, cols, A);
+    load_binary_vector("../lp_test_b.bin", rows, b);
+    load_binary_vector("../lp_test_c.bin", cols, c);
+    load_binary_vector("../lp_test_obj.bin", 1, &expected_cost);
 
     int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
 
