@@ -44,7 +44,8 @@ x_optimal = RNG.random(n)
 b = A @ x_optimal
 
 c_B = RNG.uniform(-1, 1, size=(m))
-slack = RNG.uniform(-1, 1, size=(n-m))
+
+slack = RNG.random(n-m)
 
 c_N = c_B @ A[:, m:] + slack
 
