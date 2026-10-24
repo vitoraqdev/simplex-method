@@ -26,7 +26,7 @@ else:
 
 for m, n in tests:
     
-    #configures the environment variables and runs the generator script
+    #configures the environment variables and runs the generator
     env_actual = os.environ.copy()
     env_actual["LP_TEST_M"] = str(m)
     env_actual["LP_TEST_N"] = str(n)
