@@ -32,7 +32,6 @@ other variables.
 import os
 m = int(os.environ.get("LP_TEST_M", 100)) # default 100
 n = int(os.environ.get("LP_TEST_N", 200)) # default 200
-print(m, n)
 
 RNG = np.random.default_rng(42)
 
@@ -65,6 +64,8 @@ RNG.shuffle(c)
 # print(c[:m])
 # print(optimal_cost)
 # Output to bin file
+m.astype(np.float64).tofile("lp_test_m.bin")
+n.astype(np.float64).tofile("lp_test_n.bin")
 A.astype(np.float64).tofile("lp_test_A.bin")
 b.astype(np.float64).tofile("lp_test_b.bin")
 c.astype(np.float64).tofile("lp_test_c.bin")
