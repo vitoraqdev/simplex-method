@@ -35,7 +35,7 @@ for m, n in tests:
     
     # 2. Executes the C
     begin = time.time()
-    result_c = subprocess.run([test_in_c], capture_output=True, text=True)
+    result_c = subprocess.run(["./SimplexTests"], cwd="./build", capture_output=True, text=True)
     end = time.time()
     time_taken = end - begin
     
