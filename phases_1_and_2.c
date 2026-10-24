@@ -9,8 +9,22 @@
 #include "auxiliar_functions.h"
 
 #define EPSILON 1e-6
-#define MAX_ITERATION 100
+#define MAX_ITERATION 1000
 
+/*
+   Check for non-negativity
+    */
+void ensure_non_negative_b(double **A, double *b, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        if (b[i] < 0.0) {
+            b[i] = -b[i]; 
+            
+            for (int j = 0; j < cols; j++) {
+                A[i][j] = -A[i][j];
+            }
+        }
+    }
+}
 int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optimal_solution, double *best_cost){
 
     /*
@@ -37,7 +51,8 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
         printf("ERROR: Not enough memory to allocate.\n");
         goto cleanup;
     }
-
+    ensure_non_negative_b(A, b, m, n);
+    
     initialize_phase1(m, n, B_index_phase1, N_index_phase1);
 
     if (initialization_phase1(B_phase1, N_phase1, A, m, n) == -1) {
@@ -180,10 +195,10 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
 
 
     //Finds the total cost of the optimal solution.
-    total_cost = 0;
+    *best_cost = 0.0;
     gaussian_elimination(B_phase2, current_basic_x, b, m); // redefine x
     for (int i = 0; i < m; i++) {
-        total_cost += basic_cost_phase2[i]*current_basic_x[i];
+        *best_cost += basic_cost_phase2[i]*current_basic_x[i];
     }
 
     /*
