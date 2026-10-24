@@ -348,7 +348,7 @@ RNG.shuffle(c)
 np.array([m], dtype=np.int32).tofile("lp_test_m.bin")
 np.array([n], dtype=np.int32).tofile("lp_test_n.bin")
 
-A.astype(np.float64).tofile("lp_test_A.bin")
+np.ascontiguousarray(A).astype(np.float64).tofile("lp_test_A.bin")
 b.astype(np.float64).tofile("lp_test_b.bin")
 c.astype(np.float64).tofile("lp_test_c.bin")
 
