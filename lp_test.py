@@ -34,25 +34,24 @@ import os
 m = int(os.environ.get("LP_TEST_M", 100)) # default 100
 n = int(os.environ.get("LP_TEST_N", 200)) # default 200
 
+m = 71
+n = 391
 RNG = np.random.default_rng(42)
 
-A = RNG.uniform(-1, 1, (m, n))
+A = RNG.random((m, n))
 
 A[:m, :m] = np.eye(m)
 
-x_B = RNG.random(m)
-x_N = np.zeros(n-m)
-x_optimal = np.concatenate((x_B, x_N))
-
+x_optimal = RNG.random(n)
 b = A @ x_optimal
-
-c_B = RNG.uniform(-1, 1, size=(m))
+c_B = RNG.random(m)
 slack = RNG.random(n-m)
+
 c_N = c_B @ A[:, m:] + slack
 
 c = np.concatenate((c_B, c_N))
 
-optimal_cost = c @ x_optimal
+optimal_cost = c_B @ b
 
 
 """
