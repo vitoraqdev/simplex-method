@@ -9,7 +9,7 @@
 #include "auxiliar_functions.h"
 
 #define EPSILON 1e-6
-#define MAX_ITERATION 100
+#define MAX_ITERATION 1000
 
 int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optimal_solution, double *best_cost){
 
