@@ -4,54 +4,133 @@
 #include <stdlib.h>
 
 int initialize_input(double **c, double ***A, double **b, double **optimal_solution, int *m, int *n){
-    FILE *input = fopen("./input.txt", "r");
+    *c = NULL;
+    *A = NULL;
+    *b = NULL;
+    *optimal_solution = NULL;
 
-    if (input == NULL) {
-        perror("Error reading input.txt");
+    /*Reading m (lines/constrains)*/
+    FILE *input_m = fopen("lp_test_m.bin", "rb");
+    if (input_m == NULL) {
+        perror("Error reading lp_test_m.bin");
         return -1;
     }
-    
-    if (fscanf(input, "%d %d", m, n) != 2){
-        fclose(input);
+
+    if (fread(m, sizeof(int), 1, input_m) != 1) {
+        perror("Error reading m");
+        fclose(input_m);
+        return -1;
+    }
+    fclose(input_m);
+
+    /*Reading n (columns/variables)*/
+    FILE *input_n = fopen("lp_test_n.bin", "rb");
+    if (input_n == NULL) {
+        perror("Error reading lp_test_n.bin");
+        return -1;
+    }
+
+    if (fread(n, sizeof(int), 1, input_n) != 1) {
+        perror("Error reading n");
+        fclose(input_n);
+        return -1;
+    }
+    fclose(input_n);
+
+    /*Prevents bad values*/
+    if (*m <= 0 || *n <= 0) {
+        fprintf(stderr, "Invalid matrix dimensions\n");
+        return -1;
+    }
+
+    /*Reading c (coefficients of the objective function)*/
+    FILE *input_c = fopen("lp_test_c.bin", "rb");
+    if (input_c == NULL) {
+        perror("Error reading lp_test_c.bin");
         return -1;
     }
 
     *c = malloc(*n * sizeof(double));
-    if (!*c) 
+    if (!*c){
+        fclose(input_c);
         goto cleanup;
-
-    for (int j = 0; j < *n; j++) {
-        fscanf(input, "%lf", &(*c)[j]);
     }
 
+    if (fread(*c, sizeof(double), *n, input_c) != *n) {
+            perror("Error reading c");
+            fclose(input_c);
+            goto cleanup;
+    }
+    fclose(input_c);
 
-    *A = malloc(*m * sizeof(double *));
-    if (!*A)
+    /*Reading A (coefficients of the variables in the constraints)*/
+    FILE *input_A = fopen("lp_test_A.bin", "rb");
+
+    if (input_A == NULL) {
+        perror("Error reading lp_test_A.bin");
         goto cleanup;
+    }
 
-    *optimal_solution = malloc(*n * sizeof(double));
-    if (!*optimal_solution)
+    *A = calloc(*m, sizeof(double *));
+    if (!*A){
+        fclose(input_A);
         goto cleanup;
-
+    }
 
     for (int i = 0; i < *m; i++) {
         (*A)[i] = malloc(*n * sizeof(double));
-        if (!(*A)[i]) 
+        if (!(*A)[i]){
+            fclose(input_A);
             goto cleanup;
-        for (int j = 0; j < *n; j++) {
-            fscanf(input, "%lf", &(*A)[i][j]);
         }
-    }
+        if (fread((*A)[i], sizeof(double), *n, input_A) != *n) {
+                perror("Error reading A");
+                fclose(input_A);
+                goto cleanup;
+            }
+        }
+    fclose(input_A);
 
+    /*Reading b (right-hand side of the constraints)*/
+    FILE *input_b = fopen("lp_test_b.bin", "rb");
+
+    if (input_b == NULL) {
+        perror("Error reading lp_test_b.bin");
+        goto cleanup;
+    }
 
     *b = malloc(*m * sizeof(double));
-    if (!*b)
+    if (!*b){
+        fclose(input_b);
         goto cleanup;
-    for (int i = 0; i < *m; i++) {
-        fscanf(input, "%lf", &(*b)[i]);
+    }
+    if (fread(*b, sizeof(double), *m, input_b) != *m) {
+            perror("Error reading b");
+            fclose(input_b);
+            goto cleanup;
+    }
+    fclose(input_b);
+
+    /*Reading the optimal solution*/
+    FILE *input_obj = fopen("lp_test_obj.bin", "rb");
+
+    if (input_obj == NULL) {
+        perror("Error reading lp_test_obj.bin");
+        goto cleanup;
     }
 
-    fclose(input);
+    *optimal_solution = malloc(*n * sizeof(double));
+    if (!*optimal_solution){
+        fclose(input_obj);
+        goto cleanup;
+    }    
+    if (fread(*optimal_solution, sizeof(double), *n, input_obj) != *n) {
+        perror("Error reading optimal solution");
+        fclose(input_obj);
+        goto cleanup;
+    }
+    fclose(input_obj);
+
     return 0;
 
     cleanup:
@@ -70,7 +149,9 @@ int initialize_input(double **c, double ***A, double **b, double **optimal_solut
             free(*A);
             *A = NULL;
         }
-
-    fclose(input);
+        if (optimal_solution && *optimal_solution) {
+            free(*optimal_solution);
+            *optimal_solution = NULL;
+        }
     return -1;
 }

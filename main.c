@@ -25,7 +25,7 @@ int main(){
 
     double *c = NULL, *b = NULL;
     double **A = NULL;
-    double *optimal_solution;
+    double *optimal_solution = NULL;
     double best_cost;
     int m, n;
 
