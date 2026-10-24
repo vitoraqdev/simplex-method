@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int initialize_input(double **c, double ***A, double **b, int *m, int *n){
+int initialize_input(double **c, double ***A, double **b, double **optimal_solution, int *m, int *n){
     FILE *input = fopen("./input.txt", "r");
 
     if (input == NULL) {
@@ -28,6 +28,11 @@ int initialize_input(double **c, double ***A, double **b, int *m, int *n){
     *A = malloc(*m * sizeof(double *));
     if (!*A)
         goto cleanup;
+
+    *optimal_solution = malloc(*n * sizeof(double));
+    if (!*optimal_solution)
+        goto cleanup;
+
 
     for (int i = 0; i < *m; i++) {
         (*A)[i] = malloc(*n * sizeof(double));
