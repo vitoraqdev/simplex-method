@@ -13,13 +13,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Cache Python virtual environment
+      uses: actions/cache@v4
+      with:
+        path: build/venv
+        key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-venv-
+
     - name: Configurar CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
-        cmake-version: '4.3.0'
+        cmake-version: '4.4.4'
+
     - name: Criar pasta build e configurar o CMake
       run: cmake -B build -S .
+
     - name: Compilar os testes
       run: cmake --build build --target SimplexTests
+
     - name: Executar os testes unitários
-      run: ./build/SimplexTests
+      working-directory: build
+      run: ./SimplexTests

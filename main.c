@@ -25,15 +25,17 @@ int main(){
 
     double *c, *b;
     double **A;
+    double *optimal_solution;
+    double best_cost;
     int m, n;
 
     /*Input reading*/
-    if (initialize_input(&c, &A, &b, &m, &n) != 0){
+    if (initialize_input(&c, &A, &b, &optimal_solution, &m, &n) != 0){
         return 1;
     }
 
     /*Does both phases of the simplex method*/
-    phases_1_and_2(c, A, b, m, n);
+    phases_1_and_2(c, A, b, m, n, optimal_solution, &best_cost);
 
     if (A != NULL) {
         for (int i = 0; i < m; i++) {
@@ -43,6 +45,7 @@ int main(){
     }
     if (c != NULL) free(c);
     if (b != NULL) free(b);
+    free(optimal_solution);
     
     return 0;
 }
