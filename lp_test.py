@@ -40,13 +40,14 @@ A = RNG.uniform(-1, 1, (m, n))
 
 A[:m, :m] = np.eye(m)
 
-x_optimal = RNG.random(n)
+x_B = RNG.random(m)
+x_N = np.zeros(n-m)
+x_optimal = np.concatenate((x_B, x_N))
+
 b = A @ x_optimal
 
 c_B = RNG.uniform(-1, 1, size=(m))
-
 slack = RNG.random(n-m)
-
 c_N = c_B @ A[:, m:] + slack
 
 c = np.concatenate((c_B, c_N))
