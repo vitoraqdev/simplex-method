@@ -14,7 +14,11 @@ set(BINARY_TEST_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_m.bin"
         "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_n.bin"
 )
-set(PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py")
+set(PYTHON_SCRIPT
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_unbounded.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_unfeasible.py"
+)
 set(REQUIREMENTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
 
 set(LP_TEST_M 100 CACHE STRING "Rows for generated test LP")
@@ -69,24 +73,23 @@ endif()
 # Always regenerate fixtures binaries on every configure.
 message(STATUS "Running Python script...")
 
-if(NOT EXISTS "${PYTHON_SCRIPT}")
-        message(FATAL_ERROR "Python script not found: ${PYTHON_SCRIPT}")
-endif()
 
-if(EXISTS "${PYTHON_SCRIPT}")
+
+foreach (script IN LISTS PYTHON_SCRIPT)
+        if(NOT EXISTS "${script}")
+                message(FATAL_ERROR "Python script not found: ${script}")
+        endif()
         execute_process(
-                COMMAND "${VENV_PYTHON}" "${PYTHON_SCRIPT}"
+                COMMAND "${VENV_PYTHON}" "${script}"
                 RESULT_VARIABLE SCRIPT_RESULT
                 WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 ENVIRONMENT LP_TEST_M=${LP_TEST_M} LP_TEST_N=${LP_TEST_N}
 
         )
         if(SCRIPT_RESULT)
-                message(FATAL_ERROR "Python script execution failed.")
+                message(FATAL_ERROR "Python script ${script} execution failed.")
         endif()
-else()
-        message(FATAL_ERROR "Python script not found.")
-endif()
+endforeach ()
 
 foreach(F ${BINARY_TEST_FILES})
         if(NOT EXISTS "${F}")
