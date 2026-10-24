@@ -12,7 +12,7 @@ Outputs 6 binary files, two for m and n, one for each matrix and one for the opt
 We are going to generate A_{mxn} and x_optimal randomly, and force the first m columns of A to be the identity,
 then solve b = A*x, and since we want x_optimal to be the solution, reduced cost must be >= 0 (minimization problem).
 =>  ĉ_Nj = c_Nj - λ^T * a_Nj >= 0
-=>  c_Nj >= λ^T * a_Nj#include "initialize.h"
+=>  c_Nj >= λ^T * a_Nj
 
 
 #include <stdio.h>
