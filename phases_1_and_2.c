@@ -180,10 +180,10 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
 
 
     //Finds the total cost of the optimal solution.
-    total_cost = 0;
+    *best_cost = 0.0;
     gaussian_elimination(B_phase2, current_basic_x, b, m); // redefine x
     for (int i = 0; i < m; i++) {
-        total_cost += basic_cost_phase2[i]*current_basic_x[i];
+        *best_cost += basic_cost_phase2[i]*current_basic_x[i];
     }
 
     /*
