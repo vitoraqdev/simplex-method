@@ -102,6 +102,7 @@ if __name__ == "__main__":
             # every 20 write to results.json
             done += 1
             if done % 20 == 0:
+                print(f"done {done}/{len(pending_tests)}")
                 save_results(results, RESULTS_FILE)
 
     save_results(results, RESULTS_FILE)
