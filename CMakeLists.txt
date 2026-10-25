@@ -6,14 +6,7 @@ set(CMAKE_C_STANDARD 11)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
-set(BINARY_TEST_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_A.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_b.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_c.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_obj.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_m.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_n.bin"
-)
+set(BINARY_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.bin")
 set(PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py")
 set(REQUIREMENTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
 
@@ -88,11 +81,9 @@ else()
         message(FATAL_ERROR "Python script not found.")
 endif()
 
-foreach(F ${BINARY_TEST_FILES})
-        if(NOT EXISTS "${F}")
-                message(FATAL_ERROR "Expected fixture file was not produced: ${F}")
-        endif()
-endforeach()
+if(NOT EXISTS "${BINARY_TEST_FILES}")
+        message(FATAL_ERROR "Expected fixture file was not produced: ${BINARY_TEST_FILES}")
+endif()
 
 message(STATUS "All fixture files verified.")
 
