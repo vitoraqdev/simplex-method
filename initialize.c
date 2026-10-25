@@ -2,156 +2,119 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int initialize_input(double **c, double ***A, double **b, double **optimal_solution, int *m, int *n){
+
+// LP_INPUT_FORMAT=bin selects binary; anything else (or unset) is text.
+InputFormat input_format_from_env(void) {
+    const char *f = getenv("LP_INPUT_FORMAT");
+    return (f && strcmp(f, "bin") == 0) ? INPUT_BINARY : INPUT_TEXT;
+}
+
+// chooses path based on priority of inputs
+const char *resolve_path(const char *explicit_path, InputFormat fmt, char *buf, size_t size) {
+    if (explicit_path && *explicit_path) return explicit_path; // if has explicit path through argument, choose it
+
+    const char *env_path = getenv("LP_INPUT_PATH");
+    if (env_path && *env_path) return env_path; // if explicit path through environment, choose it
+
+    const char *name = (fmt == INPUT_BINARY) ? "input.bin" : "input.txt";
+    const char *dir = getenv("LP_DATA_DIR"); // if passed dir through environment choose input.txt or input.bin
+    if (dir && *dir) {
+        snprintf(buf, size, "%s/%s", dir, name);
+        return buf;
+    }
+    return name; // else, return source input.bin or input.txt
+}
+
+// read m n
+int read_header(FILE *f, InputFormat fmt, int *m, int *n) {
+    if (fmt == INPUT_BINARY) {
+        if (fread(m, sizeof(int), 1, f) != 1) return -1;
+        if (fread(n, sizeof(int), 1, f) != 1) return -1;
+        return 0;
+    }
+    return fscanf(f, "%d %d", m, n) == 2 ? 0 : -1;
+}
+
+// read matrix
+int read_doubles(FILE *f, InputFormat fmt, double *dst, size_t count) {
+    if (fmt == INPUT_BINARY)
+        return fread(dst, sizeof(double), count, f) == count ? 0 : -1;
+
+    for (size_t i = 0; i < count; i++)
+        if (fscanf(f, "%lf", &dst[i]) != 1) return -1;
+    return 0;
+}
+
+
+int initialize_input(double **c, double ***A, double **b, double **optimal_solution,
+        int *m, int *n, InputFormat fmt, const char *path) {
     *c = NULL;
     *A = NULL;
     *b = NULL;
     *optimal_solution = NULL;
 
-    /*Reading m (lines/constrains)*/
-    FILE *input_m = fopen("lp_test_m.bin", "rb");
-    if (input_m == NULL) {
-        perror("Error reading lp_test_m.bin");
+    char path_buf[1024];
+    const char *file_input_path = resolve_path(path, fmt, path_buf, sizeof(path_buf));
+
+    FILE *f = fopen(file_input_path, fmt == INPUT_BINARY ? "rb" : "r");
+    if (!f) {
+        fprintf(stderr, "Error opening input file: %s\n", file_input_path);
         return -1;
     }
 
-    if (fread(m, sizeof(int), 1, input_m) != 1) {
-        perror("Error reading m");
-        fclose(input_m);
+    // read m n
+    if (read_header(f, fmt, m, n) != 0) {
+        fprintf(stderr, "Error reading dimensions m and n from %s\n", file_input_path);
+        fclose(f);
         return -1;
     }
-    fclose(input_m);
-
-    /*Reading n (columns/variables)*/
-    FILE *input_n = fopen("lp_test_n.bin", "rb");
-    if (input_n == NULL) {
-        perror("Error reading lp_test_n.bin");
-        return -1;
-    }
-
-    if (fread(n, sizeof(int), 1, input_n) != 1) {
-        perror("Error reading n");
-        fclose(input_n);
-        return -1;
-    }
-    fclose(input_n);
-
-    /*Prevents bad values*/
-    if (*m <= 0 || *n <= 0) {
-        fprintf(stderr, "Invalid matrix dimensions\n");
+    if (*m <= 0 || *n <= 0 || *m > *n) {
+        fprintf(stderr, "Invalid matrix dimensions m=%d, n=%d\n", *m, *n);
+        fclose(f);
         return -1;
     }
 
-    /*Reading c (coefficients of the objective function)*/
-    FILE *input_c = fopen("lp_test_c.bin", "rb");
-    if (input_c == NULL) {
-        perror("Error reading lp_test_c.bin");
-        return -1;
-    }
-
+    // allocate all memories needed
     *c = malloc(*n * sizeof(double));
-    if (!*c){
-        fclose(input_c);
-        goto cleanup;
-    }
-
-    if (fread(*c, sizeof(double), *n, input_c) != *n) {
-            perror("Error reading c");
-            fclose(input_c);
-            goto cleanup;
-    }
-    fclose(input_c);
-
-    /*Reading A (coefficients of the variables in the constraints)*/
-    FILE *input_A = fopen("lp_test_A.bin", "rb");
-
-    if (input_A == NULL) {
-        perror("Error reading lp_test_A.bin");
-        goto cleanup;
-    }
-
     *A = calloc(*m, sizeof(double *));
-    if (!*A){
-        fclose(input_A);
+    *b = malloc(*m * sizeof(double));
+    *optimal_solution = malloc(*n * sizeof(double));
+    if (!*c || !*A || !*b || !*optimal_solution) {
+        fprintf(stderr, "Memory allocation failure\n");
         goto cleanup;
     }
 
+    if (read_doubles(f, fmt, *c, *n) != 0) {
+        fprintf(stderr, "Error reading cost vector c\n");
+        goto cleanup;
+    }
     for (int i = 0; i < *m; i++) {
         (*A)[i] = malloc(*n * sizeof(double));
-        if (!(*A)[i]){
-            fclose(input_A);
+        if (!(*A)[i] || read_doubles(f, fmt, (*A)[i], *n) != 0) {
+            fprintf(stderr, "Error reading row A[%d]\n", i);
             goto cleanup;
         }
-        if (fread((*A)[i], sizeof(double), *n, input_A) != *n) {
-                perror("Error reading A");
-                fclose(input_A);
-                goto cleanup;
-            }
-        }
-    fclose(input_A);
-
-    /*Reading b (right-hand side of the constraints)*/
-    FILE *input_b = fopen("lp_test_b.bin", "rb");
-
-    if (input_b == NULL) {
-        perror("Error reading lp_test_b.bin");
+    }
+    if (read_doubles(f, fmt, *b, *m) != 0) {
+        fprintf(stderr, "Error reading vector b\n");
         goto cleanup;
     }
 
-    *b = malloc(*m * sizeof(double));
-    if (!*b){
-        fclose(input_b);
-        goto cleanup;
-    }
-    if (fread(*b, sizeof(double), *m, input_b) != *m) {
-            perror("Error reading b");
-            fclose(input_b);
-            goto cleanup;
-    }
-    fclose(input_b);
-
-    /*Reading the optimal solution*/
-    FILE *input_obj = fopen("lp_test_obj.bin", "rb");
-
-    if (input_obj == NULL) {
-        perror("Error reading lp_test_obj.bin");
-        goto cleanup;
-    }
-
-    *optimal_solution = malloc(*n * sizeof(double));
-    if (!*optimal_solution){
-        fclose(input_obj);
-        goto cleanup;
-    }    
-    if (fread(*optimal_solution, sizeof(double), *n, input_obj) != *n) {
-        perror("Error reading optimal solution");
-        fclose(input_obj);
-        goto cleanup;
-    }
-    fclose(input_obj);
-
+    fclose(f);
     return 0;
 
     cleanup:
-        if (c && *c) { 
-            free(*c); 
-            *c = NULL; 
-        }
-        if (b && *b) { 
-            free(*b); 
-            *b = NULL; 
-        }
-        if (*A) {
-            for (int i = 0; i < *m; i++) {
-                if ((*A)[i]) free((*A)[i]);
-            }
-            free(*A);
-            *A = NULL;
-        }
-        if (optimal_solution && *optimal_solution) {
-            free(*optimal_solution);
-            *optimal_solution = NULL;
-        }
+    fclose(f);
+    free(*c);  *c = NULL;
+    free(*b);  *b = NULL;
+    free(*optimal_solution); *optimal_solution = NULL;
+    if (*A) {
+        for (int i = 0; i < *m; i++) free((*A)[i]);   // calloc'ed so NULLs are safe
+        free(*A);
+        *A = NULL;
+    }
+
     return -1;
 }
