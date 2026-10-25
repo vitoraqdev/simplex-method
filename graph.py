@@ -16,7 +16,7 @@ for i in range(1, 1000, 10):
 # reads dict json file, if does not exist, create new one
 # if exists, only define values to keys not defined yet
 RESULTS_FILE = "results.json"
-TEMP_DIR = "temp"
+TEMP_DIR = "build/temp"
 BINARY_GENERATOR = "lp_test.py"
 if platform.system() == "Windows":
     SIMPLEX_C = "./build/SimplexMethod.exe"
