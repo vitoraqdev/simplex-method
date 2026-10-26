@@ -323,8 +323,8 @@ static void load_binary_int(const char *filename, int *val) {
     fclose(f);
 }
 
-// Massive integration test
-UTEST(integration, large_scale) {
+// Massive feasible bounded integration test
+UTEST(integration, large_scale_feasible_bounded) {
     int rows, cols;
 
     load_binary_int("../lp_test_m.bin", &rows);
@@ -373,6 +373,76 @@ UTEST(integration, large_scale) {
     free(A);
 }
 
+// Massive unfeasible integration test
+UTEST(integration, large_scale_unfeasible) {
+    int rows, cols;
 
+    load_binary_int("../lp_test_unfeasible_m.bin", &rows);
+    load_binary_int("../lp_test_unfeasible_n.bin", &cols);
+
+    double *result_solution = malloc(cols * sizeof(double));
+    double result_cost = 0.0;
+
+    double *b = malloc(rows * sizeof(double));
+    double *c = malloc(cols * sizeof(double));
+    double **A = malloc(rows * sizeof(double *));
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+    }
+
+    // Load matrices instantly via pure raw binary
+    load_binary_matrix("../lp_test_unfeasible_A.bin", rows, cols, A);
+    load_binary_vector("../lp_test_unfeasible_b.bin", rows, b);
+    load_binary_vector("../lp_test_unfeasible_c.bin", cols, c);
+
+    int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
+
+    // Assert solver returns unfeasible
+    EXPECT_EQ(FIRST_PHASE_COST_NOT_ZERO, result);
+
+    free(result_solution);
+    free(b);
+    free(c);
+    for (int i = 0; i < rows; i++) {
+        free(A[i]);
+    }
+    free(A);
+}
+
+// Massive unbounded integration test
+UTEST(integration, large_scale_unbounded) {
+    int rows, cols;
+
+    load_binary_int("../lp_test_unbounded_m.bin", &rows);
+    load_binary_int("../lp_test_unbounded_n.bin", &cols);
+
+    double *result_solution = malloc(cols * sizeof(double));
+    double result_cost = 0.0;
+
+    double *b = malloc(rows * sizeof(double));
+    double *c = malloc(cols * sizeof(double));
+    double **A = malloc(rows * sizeof(double *));
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+    }
+
+    // Load matrices instantly via pure raw binary
+    load_binary_matrix("../lp_test_unbounded_A.bin", rows, cols, A);
+    load_binary_vector("../lp_test_unbounded_b.bin", rows, b);
+    load_binary_vector("../lp_test_unbounded_c.bin", cols, c);
+
+    int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
+
+    // Assert solver returns unbounded
+    EXPECT_EQ(SIMPLEX_NO_FINITE_SOLUTION, result);
+
+    free(result_solution);
+    free(b);
+    free(c);
+    for (int i = 0; i < rows; i++) {
+        free(A[i]);
+    }
+    free(A);
+}
 
 UTEST_MAIN();

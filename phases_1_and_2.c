@@ -89,10 +89,12 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
     }
     if (phase1_status == MAX_ITERATION_REACHED) {
         printf("ERROR: Max iteration (%d) reached.\n", MAX_ITERATION);
+        STATUS = MAX_ITERATION_REACHED;
         goto cleanup;
     }
     if (phase1_status == SIMPLEX_NO_FINITE_SOLUTION) {
         printf("ERROR: No finite solution for the first phase.\n");
+        STATUS = SIMPLEX_NO_FINITE_SOLUTION;
         goto cleanup;
     }
     if (phase1_status == SIMPLEX_MEMORY_FAILURE) {
@@ -182,10 +184,12 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
     // Verify phase 2 status
     if (phase2_status == MAX_ITERATION_REACHED) {
         printf("ERROR: Max iteration (%d) reached.\n", MAX_ITERATION);
+        STATUS = MAX_ITERATION_REACHED;
         goto cleanup;
     }
     if (phase2_status == SIMPLEX_NO_FINITE_SOLUTION) {
         printf("ERROR: No finite solution for the second phase.\n");
+        STATUS = SIMPLEX_NO_FINITE_SOLUTION;
         goto cleanup;
     }
     if (phase2_status == SIMPLEX_MEMORY_FAILURE) {
