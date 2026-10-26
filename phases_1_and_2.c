@@ -221,6 +221,8 @@ int phases_1_and_2(double *c, double **A, double *b, int m, int n, double *optim
         }
     }
 
+    printf("Best cost: %.6lf", *best_cost);
+
     STATUS = SIMPLEX_OPTIMAL;
 
 
