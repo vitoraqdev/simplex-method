@@ -296,7 +296,7 @@ UTEST_F(SimplexFixture, test_simplex_step) {
 UTEST(integration, large_scale_feasible_bounded) {
     int rows, cols;
     InputFormat fmt = INPUT_BINARY;
-    FILE *input_bin = fopen("../input.bin", "rb");
+    FILE *input_bin = fopen("../lp_test.bin", "rb");
 
     if (input_bin == NULL) {
         fprintf(stderr, "Error reading input.bin file.\n");

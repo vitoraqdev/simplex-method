@@ -68,6 +68,7 @@ foreach (script IN LISTS PYTHON_SCRIPT)
         if(NOT EXISTS "${script}")
                 message(FATAL_ERROR "Python script not found: ${script}")
         endif()
+        message(STATUS "Running python script: ${script}")
         execute_process(
                 COMMAND "${VENV_PYTHON}" "${script}"
                 RESULT_VARIABLE SCRIPT_RESULT
