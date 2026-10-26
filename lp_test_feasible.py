@@ -75,7 +75,7 @@ if len(sys.argv) == 3:
     file_name = sys.argv[1]
     out_dir = sys.argv[2]
 else:
-    file_name = "lp_test.bin"
+    file_name = "lp_test_feasible.bin"
     out_dir = os.getcwd()
 
 os.makedirs(out_dir, exist_ok=True)

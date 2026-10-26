@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import sys
 
 """
 Generates a feasible and unbounded LP problem
@@ -23,11 +25,12 @@ pick one non-basic variable (the first one), and force reduced cost < 0:
 Selecting slack as 1, we only need to generate c, and set c_N0 as c_B^T * a_N0 - 1, and we are done,
 therefore we have a feasible unbounded LP.
 
+This works as long as long as there is a feasible solution x >= 0 which is the same as b >= 0
+
 For testing purposes I'm going to permutate matrix A to remove the identity from the starting columns, as well as all
 other variables. 
 """
 
-import os
 m = int(os.environ.get("LP_TEST_M", 100)) # default 100
 n = int(os.environ.get("LP_TEST_N", 200)) # default 200
 print(m, n)
@@ -38,11 +41,11 @@ A = RNG.random((m, n))
 
 A[:m, :m] = np.eye(m)
 b = RNG.random(m)
-c = RNG.random(n)
+c = RNG.uniform(-1, 1, size=n)
 
 
 slack = 1
-A[:, m] = -A[:, m] # since random generates [0, 1], invert column sign
+A[:, m:] = -A[:, m:] # since random generates [0, 1], invert column sign
 c_B = c[:m]
 c[m] = c_B.T @ A[:, m] - slack # c_N0
 
@@ -59,8 +62,22 @@ RNG.shuffle(c)
 # print(c[:m])
 # print(optimal_cost)
 # Output to bin file
-np.array([m], dtype=np.int32).tofile("lp_test_unbounded_m.bin")
-np.array([n], dtype=np.int32).tofile("lp_test_unbounded_n.bin")
-A.astype(np.float64).tofile("lp_test_unbounded_A.bin")
-b.astype(np.float64).tofile("lp_test_unbounded_b.bin")
-c.astype(np.float64).tofile("lp_test_unbounded_c.bin")
+
+# reads command line input, first argument is file name
+# second argument is directory
+if len(sys.argv) == 3:
+    file_name = sys.argv[1]
+    out_dir = sys.argv[2]
+else:
+    file_name = "lp_test_unbounded.bin"
+    out_dir = os.getcwd()
+
+os.makedirs(out_dir, exist_ok=True)
+file_path = os.path.join(out_dir, file_name)
+print(f"Generating {file_path} ...")
+with open(file_path, "wb") as f:
+    np.array([m, n], dtype=np.int32).tofile(f)
+    c.astype(np.float64).tofile(f)
+    A.astype(np.float64).tofile(f)
+    b.astype(np.float64).tofile(f)
+    print(f"Succesfully generated {file_path} ...")

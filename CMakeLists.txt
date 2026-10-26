@@ -6,8 +6,16 @@ set(CMAKE_C_STANDARD 11)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
-set(BINARY_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.bin")
-set(PYTHON_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py")
+set(BINARY_TEST_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_feasible.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unfeasible.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unbounded.bin"
+)
+set(PYTHON_SCRIPT
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_feasible.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unfeasible.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unbounded.py"
+)
 set(REQUIREMENTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
 
 set(LP_TEST_M 100 CACHE STRING "Rows for generated test LP")

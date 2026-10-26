@@ -17,7 +17,7 @@ for i in range(1, 1000, 10):
 # if exists, only define values to keys not defined yet
 RESULTS_FILE = "results.json"
 TEMP_DIR = "build/temp"
-BINARY_GENERATOR = "lp_test.py"
+BINARY_GENERATOR = "lp_test_feasible.py"
 if platform.system() == "Windows":
     SIMPLEX_C = "./build/SimplexMethod.exe"
 else:
