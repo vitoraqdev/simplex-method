@@ -292,8 +292,8 @@ UTEST_F(SimplexFixture, test_simplex_step) {
 // }
 
 
-// Massive integration test
-UTEST(integration, large_scale) {
+// Massive feasible bounded integration test
+UTEST(integration, large_scale_feasible_bounded) {
     int rows, cols;
     InputFormat fmt = INPUT_BINARY;
     FILE *input_bin = fopen("../input.bin", "rb");
@@ -356,7 +356,5 @@ cleanup:
     }
     free(A);
 }
-
-
 
 UTEST_MAIN();

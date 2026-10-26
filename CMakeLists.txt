@@ -62,28 +62,29 @@ endif()
 # Always regenerate fixtures binaries on every configure.
 message(STATUS "Running Python script...")
 
-if(NOT EXISTS "${PYTHON_SCRIPT}")
-        message(FATAL_ERROR "Python script not found: ${PYTHON_SCRIPT}")
-endif()
 
-if(EXISTS "${PYTHON_SCRIPT}")
+
+foreach (script IN LISTS PYTHON_SCRIPT)
+        if(NOT EXISTS "${script}")
+                message(FATAL_ERROR "Python script not found: ${script}")
+        endif()
         execute_process(
-                COMMAND "${VENV_PYTHON}" "${PYTHON_SCRIPT}"
+                COMMAND "${VENV_PYTHON}" "${script}"
                 RESULT_VARIABLE SCRIPT_RESULT
                 WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                 ENVIRONMENT LP_TEST_M=${LP_TEST_M} LP_TEST_N=${LP_TEST_N}
 
         )
         if(SCRIPT_RESULT)
-                message(FATAL_ERROR "Python script execution failed.")
+                message(FATAL_ERROR "Python script ${script} execution failed.")
         endif()
-else()
-        message(FATAL_ERROR "Python script not found.")
-endif()
+endforeach ()
 
-if(NOT EXISTS "${BINARY_TEST_FILES}")
-        message(FATAL_ERROR "Expected fixture file was not produced: ${BINARY_TEST_FILES}")
-endif()
+foreach(F ${BINARY_TEST_FILES})
+        if(NOT EXISTS "${F}")
+                message(FATAL_ERROR "Expected fixture file was not produced: ${F}")
+        endif()
+endforeach()
 
 message(STATUS "All fixture files verified.")
 
