@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 """
 Generates a feasible and bounded LP problem
@@ -45,7 +46,7 @@ x_optimal[m:] = 0
 b = A @ x_optimal
 
 c_B = RNG.uniform(-1, 1, size=(m))
-slack = RNG.random(m)
+slack = RNG.random(n-m)
 
 c_N = c_B @ A[:, m:] + slack
 
@@ -66,13 +67,24 @@ RNG.shuffle(c)
 # print(A[:m, :m])
 # print(c[:m])
 # print(optimal_cost)
-# Output to bin file
+# Output to single bin file
 
-np.array([m], dtype=np.int32).tofile("lp_test_m.bin")
-np.array([n], dtype=np.int32).tofile("lp_test_n.bin")
+# reads command line input, first argument is file name
+# second argument is directory
+if len(sys.argv) == 3:
+    file_name = sys.argv[1]
+    out_dir = sys.argv[2]
+else:
+    file_name = "lp_test_feasible.bin"
+    out_dir = os.getcwd()
 
-np.ascontiguousarray(A).astype(np.float64).tofile("lp_test_A.bin")
-b.astype(np.float64).tofile("lp_test_b.bin")
-c.astype(np.float64).tofile("lp_test_c.bin")
-
-np.array([optimal_cost], dtype=np.float64).tofile("lp_test_obj.bin")
+os.makedirs(out_dir, exist_ok=True)
+file_path = os.path.join(out_dir, file_name)
+print(f"Generating {file_path} ...")
+with open(file_path, "wb") as f:
+    np.array([m, n], dtype=np.int32).tofile(f)
+    c.astype(np.float64).tofile(f)
+    A.astype(np.float64).tofile(f)
+    b.astype(np.float64).tofile(f)
+    optimal_cost.tofile(f)
+    print(f"Succesfully generated {file_path} ...")

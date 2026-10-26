@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import sys
 
 """
 Generates an unfeasible LP
@@ -16,7 +18,6 @@ For testing purposes I'm going to permutate matrix A to remove the identity from
 other variables. 
 """
 
-import os
 m = int(os.environ.get("LP_TEST_M", 100)) # default 100
 n = int(os.environ.get("LP_TEST_N", 200)) # default 200
 print(m, n)
@@ -24,7 +25,7 @@ print(m, n)
 RNG = np.random.default_rng(42)
 
 A = RNG.random((m, n))
-A[1, :m] = A[0, :m] # copy first -> second row
+A[1, :] = A[0, :] # copy first -> second row
 b = RNG.random(m)
 b[1] = b[0] + 1 # make it unfeasible
 c = RNG.random(n)
@@ -43,8 +44,22 @@ RNG.shuffle(c)
 # print(c[:m])
 # print(optimal_cost)
 # Output to bin file
-np.array([m], dtype=np.int32).tofile("lp_test_unfeasible_m.bin")
-np.array([n], dtype=np.int32).tofile("lp_test_unfeasible_n.bin")
-A.astype(np.float64).tofile("lp_test_unfeasible_A.bin")
-b.astype(np.float64).tofile("lp_test_unfeasible_b.bin")
-c.astype(np.float64).tofile("lp_test_unfeasible_c.bin")
+
+# reads command line input, first argument is file name
+# second argument is directory
+if len(sys.argv) == 3:
+    file_name = sys.argv[1]
+    out_dir = sys.argv[2]
+else:
+    file_name = "lp_test_unfeasible.bin"
+    out_dir = os.getcwd()
+
+os.makedirs(out_dir, exist_ok=True)
+file_path = os.path.join(out_dir, file_name)
+print(f"Generating {file_path} ...")
+with open(file_path, "wb") as f:
+    np.array([m, n], dtype=np.int32).tofile(f)
+    c.astype(np.float64).tofile(f)
+    A.astype(np.float64).tofile(f)
+    b.astype(np.float64).tofile(f)
+    print(f"Succesfully generated {file_path} ...")

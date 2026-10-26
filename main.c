@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "initialize.h"
 #include "phases_1_and_2.h"
@@ -21,7 +22,7 @@ A_m1 A_m2 ... A_mn
 b_1 b_2 ... b_m
 */
 
-int main(){
+int main(int argc, char **argv) {
 
     double *c = NULL, *b = NULL;
     double **A = NULL;
@@ -29,8 +30,21 @@ int main(){
     double best_cost;
     int m, n;
 
+    /*
+     * args: if passed --binary through command then reads input.bin
+     * if passed --text then reads input.txt
+     * if neither of those, then reads as an explicit path for the input file
+    */
+    InputFormat fmt = input_format_from_env();
+    const char *path = NULL;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--binary") == 0)    fmt = INPUT_BINARY;
+        else if (strcmp(argv[i], "--text") == 0) fmt = INPUT_TEXT;
+        else path = argv[i];
+    }
+
     /*Input reading*/
-    if (initialize_input(&c, &A, &b, &optimal_solution, &m, &n) != 0){
+    if (initialize_input(&c, &A, &b, &optimal_solution, &m, &n, fmt, path) != 0){
         return 1;
     }
 

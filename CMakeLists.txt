@@ -7,17 +7,14 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 set(VENV_DIR "${CMAKE_CURRENT_BINARY_DIR}/venv")
 set(BINARY_TEST_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_A.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_b.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_c.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_obj.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_m.bin"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_n.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_feasible.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unfeasible.bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unbounded.bin"
 )
 set(PYTHON_SCRIPT
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test.py"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_unbounded.py"
-        "${CMAKE_CURRENT_SOURCE_DIR}/lp_unfeasible.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_feasible.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unfeasible.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lp_test_unbounded.py"
 )
 set(REQUIREMENTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
 
@@ -79,6 +76,7 @@ foreach (script IN LISTS PYTHON_SCRIPT)
         if(NOT EXISTS "${script}")
                 message(FATAL_ERROR "Python script not found: ${script}")
         endif()
+        message(STATUS "Running python script: ${script}")
         execute_process(
                 COMMAND "${VENV_PYTHON}" "${script}"
                 RESULT_VARIABLE SCRIPT_RESULT
