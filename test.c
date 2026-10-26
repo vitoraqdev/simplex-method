@@ -296,10 +296,10 @@ UTEST_F(SimplexFixture, test_simplex_step) {
 UTEST(integration, large_scale_feasible_bounded) {
     int rows, cols;
     InputFormat fmt = INPUT_BINARY;
-    FILE *input_bin = fopen("../lp_test.bin", "rb");
+    FILE *input_bin = fopen("../lp_test_feasible.bin", "rb");
 
     if (input_bin == NULL) {
-        fprintf(stderr, "Error reading input.bin file.\n");
+        fprintf(stderr, "Error reading lp_test_feasible.bin.\n");
         ASSERT_NE(NULL, input_bin);
     }
     read_header(input_bin, fmt, &rows, &cols);
@@ -356,5 +356,118 @@ cleanup:
     }
     free(A);
 }
+
+// Massive unbounded integration test
+UTEST(integration, large_scale_unbounded) {
+    int rows, cols;
+    InputFormat fmt = INPUT_BINARY;
+    FILE *input_bin = fopen("../lp_test_unbounded.bin", "rb");
+
+    if (input_bin == NULL) {
+        fprintf(stderr, "Error reading lp_test_unbounded.bin.\n");
+        ASSERT_NE(NULL, input_bin);
+    }
+    read_header(input_bin, fmt, &rows, &cols);
+
+    double *result_solution = malloc(cols * sizeof(double));
+    double result_cost = 0.0;
+
+    double *b = malloc(rows * sizeof(double));
+    double *c = malloc(cols * sizeof(double));
+    double **A = malloc(rows * sizeof(double *));
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+    }
+
+    // Load matrices instantly via pure raw binary
+    if (read_doubles(input_bin, fmt, c, cols) != 0) {
+        fprintf(stderr, "Error reading cost vector c\n");
+        goto cleanup;
+    }
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+        if (!A[i] || read_doubles(input_bin, fmt, A[i], cols) != 0) {
+            fprintf(stderr, "Error reading row A[%d]\n", i);
+            goto cleanup;
+        }
+    }
+    if (read_doubles(input_bin, fmt, b, rows) != 0) {
+        fprintf(stderr, "Error reading vector b\n");
+        goto cleanup;
+    }
+
+    int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
+
+    // Assert solver success and correctness
+    EXPECT_EQ(SIMPLEX_NO_FINITE_SOLUTION, result);
+
+cleanup:
+    fclose(input_bin);
+    free(result_solution);
+    free(b);
+    free(c);
+    for (int i = 0; i < rows; i++) {
+        free(A[i]);
+    }
+    free(A);
+}
+
+
+// Massive unfeasible integration test
+UTEST(integration, large_scale_unfeasible) {
+    int rows, cols;
+    InputFormat fmt = INPUT_BINARY;
+    FILE *input_bin = fopen("../lp_test_unfeasible.bin", "rb");
+
+    if (input_bin == NULL) {
+        fprintf(stderr, "Error reading lp_test_unfeasible.bin.\n");
+        ASSERT_NE(NULL, input_bin);
+    }
+    read_header(input_bin, fmt, &rows, &cols);
+
+    double *result_solution = malloc(cols * sizeof(double));
+    double result_cost = 0.0;
+
+    double *b = malloc(rows * sizeof(double));
+    double *c = malloc(cols * sizeof(double));
+    double **A = malloc(rows * sizeof(double *));
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+    }
+
+    // Load matrices instantly via pure raw binary
+    if (read_doubles(input_bin, fmt, c, cols) != 0) {
+        fprintf(stderr, "Error reading cost vector c\n");
+        goto cleanup;
+    }
+    for (int i = 0; i < rows; i++) {
+        A[i] = malloc(cols * sizeof(double));
+        if (!A[i] || read_doubles(input_bin, fmt, A[i], cols) != 0) {
+            fprintf(stderr, "Error reading row A[%d]\n", i);
+            goto cleanup;
+        }
+    }
+    if (read_doubles(input_bin, fmt, b, rows) != 0) {
+        fprintf(stderr, "Error reading vector b\n");
+        goto cleanup;
+    }
+
+
+    int result = phases_1_and_2(c, A, b, rows, cols, result_solution, &result_cost);
+
+    // Assert solver success and correctness
+    EXPECT_EQ(FIRST_PHASE_COST_NOT_ZERO, result);
+
+cleanup:
+    fclose(input_bin);
+    free(result_solution);
+    free(b);
+    free(c);
+    for (int i = 0; i < rows; i++) {
+        free(A[i]);
+    }
+    free(A);
+}
+
 
 UTEST_MAIN();
