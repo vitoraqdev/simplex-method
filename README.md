@@ -6,8 +6,8 @@
 
 ![C Standard](https://img.shields.io/badge/C-C11-blue.svg)
 ![CMake](https://img.shields.io/badge/Build-CMake-orange.svg)
-![CI/CD](https://img.shields.io/badge/GitHub%20Actions-Passing-brightgreen.svg)
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg )
+[![C/C++ CI](https://github.com/vitoraqdev/simplex-method/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/vitoraqdev/simplex-method/actions/workflows/c-cpp.yml)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
 
 ---
@@ -58,7 +58,7 @@ using the **Two-Phase Revised Simplex Method**. Built in C for a better computat
 
 Ensure you have the following tools installed before building:
 * C compiler with C11 support (`gcc` or `clang`)
-* `CMake` (version 3.15 or higher)
+* `CMake` (version 4.4 or higher)
 * `Python 3.10+` with dependencies listed in `requirements.txt` (for benchmark scripts and graph generation)
 
 
@@ -89,10 +89,10 @@ Ensure you have the following tools installed before building:
 
 ## Building and Running
 ```bash
-git clone [https://github.com/vitoraqdev/simplex-method.git](https://github.com/vitoraqdev/simplex-method.git)
-mkdir build && cd build
-cmake ..
-make
+git clone https://github.com/vitoraqdev/simplex-method.git
+cd simplex-method
+cmake -B build -S .
+cmake --build build
 ```
 
 
@@ -142,7 +142,7 @@ Test binaries can have one additional `float64` showing the optimal cost. `Simpl
 
 ### Selecting the file and format
 ```
-./build/SimplexMethod                                        # reads input.txt from source directory
+./build/SimplexMethod                                        # reads input.txt from current directory
 ./build/SimplexMethod --text path/to/myproblem.txt           # reads myproblem.txt 
 ./build/SimplexMethod --binary path/to/myproblem.bin         # reads myproblem.bin
 ./build/SimplexMethod --text                                 # reads LP_DATA_DIR/input.txt
@@ -152,9 +152,9 @@ However you can pass the file you want to solve in multiple ways, and it follows
 1. Through command line
 2. `LP_INPUT_PATH` environment variable
 3. `LP_DATA_DIR/input.txt` or `LP_DATA_DIR/input.bin`
-4. `input.txt` or `input.bin` in the source directory
+4. `input.txt` or `input.bin` in the current directory
 
-The format can also be chosen by passing the environment variable `LP_INPUT_FORMAT = bin`, and otherwise is chosen as text.
+The format can also be chosen by passing the environment variable `LP_INPUT_FORMAT=bin`, and otherwise is chosen as text.
 
 
 ## Output
@@ -182,7 +182,7 @@ Best cost: -20.000000
 Phase 1 prints m+n variables, with the last m variables set to zero which are related to the artificials variables, phase 2 prints the original ones, both of them preserving the original order from input.
 Errors include:
 ```
-ERROR: First phase cost non-zero. Total cost {total_cost:.6}= 0.
+ERROR: First phase cost non-zero. Total cost {total_cost:.6} != 0.
 ERROR: Max iteration ({MAX_ITERATION}) reached.
 ERROR: No finite solution for the first (or second) phase.
 ERROR: Not enough memory to allocate.
@@ -207,6 +207,7 @@ ERROR: Not enough memory to allocate.
 
 ## Tests
 ```bash
+cmake -B build -S .
 cmake --build build --target SimplexTests
 cd build
 ./SimplexTests
@@ -245,6 +246,14 @@ The workflow in `.github/workflows/c-cpp.yml` runs on every push and pull reques
 ---
 
 
+## Limitations
+
+We do not provide any anti-cycling prevention (Bland's rule). Also, the matrices should be size 
+$n >= m$. Furthermore Gaussian elimination is very costly to do thrice with same matrix B,
+so using a LU factorization should improve the speed greatly. Lastly the possibility to add structures
+and algorithms to solve sparse matrices, allowing for bigger sized matrices to be solved too.
+
+---
 
 ## References
 
